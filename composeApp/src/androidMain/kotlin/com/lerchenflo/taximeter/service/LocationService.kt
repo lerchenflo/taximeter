@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 actual class LocationService(
-    private val context: Context
+    context: Context
 ) {
     private val fusedClient = LocationServices.getFusedLocationProviderClient(context)
 

@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.mainscreen.location
+package com.lerchenflo.taximeter.homescreen.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
