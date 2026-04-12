@@ -21,7 +21,7 @@ ksp = "2.3.5"
 sqlite = "2.6.2"
 
 datastore = "1.2.1"
-
+serialisation = "1.11.0"
 
 #Android side
 composeBom = "2026.03.01"
@@ -66,6 +66,7 @@ koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin-core" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin-core" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin-core" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin-core" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialisation" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
