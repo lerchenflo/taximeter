@@ -51,6 +51,9 @@ kotlin {
             
             // KMP Template dependencies
             implementation(libs.koin.android)
+
+            // Location
+            implementation(libs.play.services.location)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

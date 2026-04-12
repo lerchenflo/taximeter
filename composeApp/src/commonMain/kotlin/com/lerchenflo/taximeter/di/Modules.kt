@@ -4,7 +4,9 @@ import com.lerchenflo.taximeter.datasource.AppRepository
 import com.lerchenflo.taximeter.datasource.Preferencemanager
 import com.lerchenflo.taximeter.datasource.database.AppDatabase
 import com.lerchenflo.taximeter.datasource.database.CreateAppDatabase
+import com.lerchenflo.taximeter.mainscreen.location.LocationViewModel
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val sharedModule = module {
@@ -15,4 +17,7 @@ val sharedModule = module {
 
     // App repository
     singleOf(::AppRepository)
+
+    // ViewModels
+    viewModelOf(::LocationViewModel)
 }
