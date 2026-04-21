@@ -1,0 +1,6 @@
+package com.lerchenflo.taximeter.passenger.presentation.passenger_routes
+
+sealed interface PassengerRoutesEvent {
+    data class NavigateToTaximeter(val passengerId: Long, val routeId: Long) : PassengerRoutesEvent
+    data object NavigateBack : PassengerRoutesEvent
+}

@@ -22,6 +22,8 @@ sqlite = "2.6.2"
 
 datastore = "1.2.1"
 serialisation = "1.11.0"
+navigation = "2.9.0"
+datetime = "0.6.2"
 
 #Android side
 composeBom = "2026.03.01"
@@ -67,6 +69,8 @@ koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin-cor
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin-core" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin-core" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialisation" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -81,3 +85,4 @@ androidKmpLibrary = { id = "com.android.kotlin.multiplatform.library", version.r
 # KMP Template plugins
 room = { id = "androidx.room", version.ref = "room" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
