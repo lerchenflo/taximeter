@@ -28,15 +28,50 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lerchenflo.taximeter.core.presentation.formatDistance
-import com.lerchenflo.taximeter.core.presentation.formatDuration
-import com.lerchenflo.taximeter.core.presentation.formatPrice
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lerchenflo.taximeter.utilities.ObserveEvents
+import com.lerchenflo.taximeter.utilities.formatDistance
+import com.lerchenflo.taximeter.utilities.formatDuration
+import com.lerchenflo.taximeter.utilities.formatPrice
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun TaximeterRoot(
+    passengerId: Long,
+    routeId: Long,
+    onBack: () -> Unit,
+    viewModel: TaximeterViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val permissionState = rememberLocationPermissionState()
+
+    LaunchedEffect(permissionState.hasPermission) {
+        viewModel.onAction(TaximeterAction.OnPermissionResult(permissionState.hasPermission))
+    }
+
+    ObserveEvents(viewModel.events) { event ->
+        when (event) {
+            is TaximeterEvent.RouteCompleted -> onBack()
+            is TaximeterEvent.NavigateBack -> onBack()
+            is TaximeterEvent.RequestLocationPermission -> {
+                permissionState.requestPermission()
+            }
+        }
+    }
+
+    TaximeterScreen(
+        state = state,
+        onAction = viewModel::onAction
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

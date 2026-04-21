@@ -32,9 +32,34 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lerchenflo.taximeter.utilities.ObserveEvents
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun PassengerListRoot(
+    onPassengerClick: (Long) -> Unit,
+    viewModel: PassengerListViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    ObserveEvents(viewModel.events) { event ->
+        when (event) {
+            is PassengerListEvent.NavigateToPassengerRoutes -> {
+                onPassengerClick(event.passengerId)
+            }
+        }
+    }
+
+    PassengerListScreen(
+        state = state,
+        onAction = viewModel::onAction
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

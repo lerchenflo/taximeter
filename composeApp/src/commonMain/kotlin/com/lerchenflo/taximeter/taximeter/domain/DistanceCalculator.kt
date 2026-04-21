@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.domain.util
+package com.lerchenflo.taximeter.taximeter.domain
 
 import kotlin.math.PI
 import kotlin.math.atan2

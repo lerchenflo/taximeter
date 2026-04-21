@@ -1,6 +1,6 @@
 package com.lerchenflo.taximeter.datasource.repository
 
-import com.lerchenflo.taximeter.core.domain.util.currentTimeMillis
+import com.lerchenflo.taximeter.utilities.currentTimeMillis
 import com.lerchenflo.taximeter.datasource.database.PassengerDao
 import com.lerchenflo.taximeter.datasource.database.entities.Passenger
 import kotlinx.coroutines.flow.Flow

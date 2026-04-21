@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.domain.util
+package com.lerchenflo.taximeter.utilities
 
 import platform.Foundation.NSDate
 import platform.Foundation.timeIntervalSince1970

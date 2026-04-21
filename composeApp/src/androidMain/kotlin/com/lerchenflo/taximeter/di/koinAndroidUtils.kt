@@ -9,7 +9,11 @@ fun startKoinAndroid(androidContext: Context) {
     if (KoinPlatform.getKoinOrNull() == null) {
         startKoin {
             androidContext(androidContext)
-            modules(androidUserDatabaseModule, sharedModule)
+            modules(
+                androidUserDatabaseModule,
+                datasourceModule,
+                presentationModule
+            )
         }
     }
 }

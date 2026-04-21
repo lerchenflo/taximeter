@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.navigation
+package com.lerchenflo.taximeter.app.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -6,9 +6,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListScreenRoot
-import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesScreenRoot
-import com.lerchenflo.taximeter.taximeter.presentation.TaximeterScreenRoot
+import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListRoot
+import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesRoot
+import com.lerchenflo.taximeter.taximeter.presentation.TaximeterRoot
 
 @Composable
 fun AppNavGraph(
@@ -21,7 +21,7 @@ fun AppNavGraph(
         modifier = modifier
     ) {
         composable<PassengerListRoute> {
-            PassengerListScreenRoot(
+            PassengerListRoot(
                 onPassengerClick = { passengerId ->
                     navController.navigate(PassengerRoutesRoute(passengerId))
                 }
@@ -30,7 +30,7 @@ fun AppNavGraph(
 
         composable<PassengerRoutesRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<PassengerRoutesRoute>()
-            PassengerRoutesScreenRoot(
+            PassengerRoutesRoot(
                 passengerId = route.passengerId,
                 onStartRoute = { passengerId ->
                     navController.navigate(TaximeterRoute(passengerId))
@@ -44,7 +44,7 @@ fun AppNavGraph(
 
         composable<TaximeterRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<TaximeterRoute>()
-            TaximeterScreenRoot(
+            TaximeterRoot(
                 passengerId = route.passengerId,
                 routeId = route.routeId,
                 onBack = { navController.popBackStack() }

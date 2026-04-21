@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.presentation
+package com.lerchenflo.taximeter.taximeter.presentation
 
 import android.Manifest
 import android.content.pm.PackageManager

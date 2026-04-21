@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.presentation
+package com.lerchenflo.taximeter.utilities
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

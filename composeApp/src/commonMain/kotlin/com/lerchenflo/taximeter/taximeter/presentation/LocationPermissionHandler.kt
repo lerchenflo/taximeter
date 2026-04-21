@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.presentation
+package com.lerchenflo.taximeter.taximeter.presentation
 
 import androidx.compose.runtime.Composable
 

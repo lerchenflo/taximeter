@@ -1,6 +1,4 @@
-package com.lerchenflo.taximeter.core.presentation
-
-import com.lerchenflo.taximeter.core.domain.util.DataError
+package com.lerchenflo.taximeter.utilities
 
 sealed interface UiText {
     data class DynamicString(val value: String) : UiText

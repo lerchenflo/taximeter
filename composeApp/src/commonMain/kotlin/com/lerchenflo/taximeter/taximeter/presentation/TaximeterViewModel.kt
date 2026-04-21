@@ -3,10 +3,10 @@ package com.lerchenflo.taximeter.taximeter.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lerchenflo.taximeter.core.domain.location.LocationTracker
-import com.lerchenflo.taximeter.core.domain.util.currentTimeMillis
-import com.lerchenflo.taximeter.core.domain.util.haversineDistance
-import com.lerchenflo.taximeter.datasource.Preferencemanager
+import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
+import com.lerchenflo.taximeter.taximeter.domain.LocationTracker
+import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
+import com.lerchenflo.taximeter.utilities.currentTimeMillis
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -118,44 +118,59 @@ class TaximeterViewModel(
         }
 
         locationJob = viewModelScope.launch {
-            locationTracker.startTracking().collect { point ->
-                val prevLat = lastLat
-                val prevLon = lastLon
+            try {
+                locationTracker.startTracking().collect { point ->
+                    val prevLat = lastLat
+                    val prevLon = lastLon
 
-                if (prevLat != null && prevLon != null) {
-                    val distance = haversineDistance(prevLat, prevLon, point.latitude, point.longitude)
-                    if (distance > 2.0) {
-                        val newTotalDistance = _state.value.distanceMeters + distance
-                        val newPrice = _state.value.baseFare + (newTotalDistance / 1000.0) * _state.value.pricePerKm
+                    if (prevLat != null && prevLon != null) {
+                        val distance =
+                            haversineDistance(prevLat, prevLon, point.latitude, point.longitude)
+                        if (distance > 2.0) {
+                            val newTotalDistance = _state.value.distanceMeters + distance
+                            val newPrice =
+                                _state.value.baseFare + (newTotalDistance / 1000.0) * _state.value.pricePerKm
 
-                        _state.update {
-                            it.copy(
-                                distanceMeters = newTotalDistance,
-                                currentPrice = newPrice
-                            )
-                        }
-
-                        if (routeId != -1L) {
-                            routeRepository.addRoutePoint(routeId, point.latitude, point.longitude)
-                            val route = routeRepository.getRouteById(routeId)
-                            if (route != null) {
-                                routeRepository.updateRoute(
-                                    route.copy(
-                                        totalDistanceMeters = newTotalDistance,
-                                        totalPrice = newPrice
-                                    )
+                            _state.update {
+                                it.copy(
+                                    distanceMeters = newTotalDistance,
+                                    currentPrice = newPrice
                                 )
                             }
+
+                            if (routeId != -1L) {
+                                routeRepository.addRoutePoint(
+                                    routeId,
+                                    point.latitude,
+                                    point.longitude
+                                )
+                                val route = routeRepository.getRouteById(routeId)
+                                if (route != null) {
+                                    routeRepository.updateRoute(
+                                        route.copy(
+                                            totalDistanceMeters = newTotalDistance,
+                                            totalPrice = newPrice
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        if (routeId != -1L) {
+                            routeRepository.addRoutePoint(
+                                routeId,
+                                point.latitude,
+                                point.longitude
+                            )
                         }
                     }
-                } else {
-                    if (routeId != -1L) {
-                        routeRepository.addRoutePoint(routeId, point.latitude, point.longitude)
-                    }
-                }
 
-                lastLat = point.latitude
-                lastLon = point.longitude
+                    lastLat = point.latitude
+                    lastLon = point.longitude
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(isRunning = false) }
+                timerJob?.cancel()
             }
         }
     }

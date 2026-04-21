@@ -27,13 +27,46 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lerchenflo.taximeter.core.presentation.formatDateTime
-import com.lerchenflo.taximeter.core.presentation.formatDistance
-import com.lerchenflo.taximeter.core.presentation.formatPrice
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lerchenflo.taximeter.datasource.database.entities.Route
+import com.lerchenflo.taximeter.utilities.ObserveEvents
+import com.lerchenflo.taximeter.utilities.formatDateTime
+import com.lerchenflo.taximeter.utilities.formatDistance
+import com.lerchenflo.taximeter.utilities.formatPrice
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun PassengerRoutesRoot(
+    passengerId: Long,
+    onStartRoute: (Long) -> Unit,
+    onRouteClick: (Long, Long) -> Unit,
+    onBack: () -> Unit,
+    viewModel: PassengerRoutesViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    ObserveEvents(viewModel.events) { event ->
+        when (event) {
+            is PassengerRoutesEvent.NavigateToTaximeter -> {
+                if (event.routeId == -1L) {
+                    onStartRoute(event.passengerId)
+                } else {
+                    onRouteClick(event.passengerId, event.routeId)
+                }
+            }
+            is PassengerRoutesEvent.NavigateBack -> onBack()
+        }
+    }
+
+    PassengerRoutesScreen(
+        state = state,
+        onAction = viewModel::onAction
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

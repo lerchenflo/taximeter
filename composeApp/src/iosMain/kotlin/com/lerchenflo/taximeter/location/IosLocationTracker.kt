@@ -1,7 +1,7 @@
 package com.lerchenflo.taximeter.location
 
-import com.lerchenflo.taximeter.core.domain.location.LocationPoint
-import com.lerchenflo.taximeter.core.domain.location.LocationTracker
+import com.lerchenflo.taximeter.taximeter.domain.LocationPoint
+import com.lerchenflo.taximeter.taximeter.domain.LocationTracker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 

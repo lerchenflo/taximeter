@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.navigation
+package com.lerchenflo.taximeter.app.navigation
 
 import kotlinx.serialization.Serializable
 

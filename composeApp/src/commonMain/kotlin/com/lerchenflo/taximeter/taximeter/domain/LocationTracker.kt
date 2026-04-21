@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.domain.location
+package com.lerchenflo.taximeter.taximeter.domain
 
 import kotlinx.coroutines.flow.Flow
 

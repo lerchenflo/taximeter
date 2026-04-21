@@ -6,8 +6,8 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import com.lerchenflo.taximeter.core.domain.location.LocationPoint
-import com.lerchenflo.taximeter.core.domain.location.LocationTracker
+import com.lerchenflo.taximeter.taximeter.domain.LocationPoint
+import com.lerchenflo.taximeter.taximeter.domain.LocationTracker
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -40,12 +40,17 @@ class AndroidLocationTracker(
             override fun onProviderDisabled(provider: String) {}
         }
 
-        manager.requestLocationUpdates(
-            LocationManager.GPS_PROVIDER,
-            2000L,
-            5f,
-            listener
-        )
+        val provider = when {
+            manager.isProviderEnabled(LocationManager.GPS_PROVIDER) -> LocationManager.GPS_PROVIDER
+            manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) -> LocationManager.NETWORK_PROVIDER
+            else -> null
+        }
+
+        if (provider != null) {
+            manager.requestLocationUpdates(provider, 2000L, 5f, listener)
+        } else {
+            close(IllegalStateException("No location provider available"))
+        }
 
         awaitClose {
             manager.removeUpdates(listener)

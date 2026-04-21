@@ -5,7 +5,11 @@ import org.koin.core.context.startKoin
 fun initKoin() {
     if (org.koin.core.KoinPlatform.getKoinOrNull() == null) {
         startKoin {
-            modules(iosDatabaseModule, sharedModule)
+            modules(
+                iosDatabaseModule,
+                datasourceModule,
+                presentationModule
+            )
         }
     }
 }

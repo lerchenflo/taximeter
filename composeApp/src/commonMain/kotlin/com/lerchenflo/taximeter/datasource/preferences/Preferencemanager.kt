@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.datasource
+package com.lerchenflo.taximeter.datasource.preferences
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -28,7 +28,6 @@ class Preferencemanager(
         prefs.edit { it.clear() }
     }
 
-    // Sounds
     suspend fun saveUseSounds(value: Boolean) {
         prefs.edit { it[PrefsKeys.USE_SOUNDS] = value }
     }
@@ -41,7 +40,6 @@ class Preferencemanager(
         return prefs.data.first()[PrefsKeys.USE_SOUNDS] ?: false
     }
 
-    // Pricing
     suspend fun saveBaseFare(value: Double) {
         prefs.edit { it[PrefsKeys.BASE_FARE] = value.toString() }
     }

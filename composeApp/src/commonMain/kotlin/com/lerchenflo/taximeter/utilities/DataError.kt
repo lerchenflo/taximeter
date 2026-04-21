@@ -1,4 +1,4 @@
-package com.lerchenflo.taximeter.core.domain.util
+package com.lerchenflo.taximeter.utilities
 
 sealed interface DataError {
     enum class Database : DataError {
