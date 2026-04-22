@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListRoot
 import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesRoot
+import com.lerchenflo.taximeter.routemap.presentation.RouteMapRoot
+import com.lerchenflo.taximeter.settings.presentation.SettingsRoot
 import com.lerchenflo.taximeter.taximeter.presentation.TaximeterRoot
 
 @Composable
@@ -24,6 +26,12 @@ fun AppNavGraph(
             PassengerListRoot(
                 onPassengerClick = { passengerId ->
                     navController.navigate(PassengerRoutesRoute(passengerId))
+                },
+                onShowMap = {
+                    navController.navigate(RouteMapRoute())
+                },
+                onOpenSettings = {
+                    navController.navigate(SettingsRoute)
                 }
             )
         }
@@ -38,6 +46,9 @@ fun AppNavGraph(
                 onRouteClick = { passengerId, routeId ->
                     navController.navigate(TaximeterRoute(passengerId, routeId))
                 },
+                onShowMap = { passengerId ->
+                    navController.navigate(RouteMapRoute(passengerId))
+                },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -47,6 +58,20 @@ fun AppNavGraph(
             TaximeterRoot(
                 passengerId = route.passengerId,
                 routeId = route.routeId,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteMapRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<RouteMapRoute>()
+            RouteMapRoot(
+                passengerId = route.passengerId,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<SettingsRoute> {
+            SettingsRoot(
                 onBack = { navController.popBackStack() }
             )
         }

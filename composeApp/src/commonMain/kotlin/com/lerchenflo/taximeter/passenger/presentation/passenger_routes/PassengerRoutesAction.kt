@@ -4,4 +4,5 @@ sealed interface PassengerRoutesAction {
     data object StartNewRoute : PassengerRoutesAction
     data class SelectRoute(val routeId: Long) : PassengerRoutesAction
     data object GoBack : PassengerRoutesAction
+    data object ShowRouteMap : PassengerRoutesAction
 }

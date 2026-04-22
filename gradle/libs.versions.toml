@@ -24,6 +24,7 @@ datastore = "1.2.1"
 serialisation = "1.11.0"
 navigation = "2.9.0"
 datetime = "0.6.2"
+maplibreCompose = "0.12.1"
 
 #Android side
 composeBom = "2026.03.01"
@@ -71,6 +72,7 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin-cor
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialisation" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibreCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

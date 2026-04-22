@@ -7,6 +7,8 @@ import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
 import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListViewModel
 import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesViewModel
+import com.lerchenflo.taximeter.routemap.presentation.RouteMapViewModel
+import com.lerchenflo.taximeter.settings.presentation.SettingsViewModel
 import com.lerchenflo.taximeter.taximeter.presentation.TaximeterViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -28,4 +30,6 @@ val presentationModule = module {
     viewModelOf(::PassengerListViewModel)
     viewModelOf(::PassengerRoutesViewModel)
     viewModelOf(::TaximeterViewModel)
+    viewModelOf(::RouteMapViewModel)
+    viewModelOf(::SettingsViewModel)
 }

@@ -40,6 +40,9 @@ interface RouteDao {
 
     @Query("SELECT * FROM routes WHERE isActive = 1 LIMIT 1")
     suspend fun getActiveRoute(): Route?
+
+    @Query("SELECT * FROM routes WHERE isActive = 0 ORDER BY startTime DESC")
+    fun getAll(): Flow<List<Route>>
 }
 
 @Dao
@@ -49,4 +52,7 @@ interface RoutePointDao {
 
     @Query("SELECT * FROM route_points WHERE routeId = :routeId ORDER BY timestamp ASC")
     fun getByRouteId(routeId: Long): Flow<List<RoutePoint>>
+
+    @Query("SELECT * FROM route_points WHERE routeId = :routeId ORDER BY timestamp ASC")
+    suspend fun getByRouteIdOnce(routeId: Long): List<RoutePoint>
 }

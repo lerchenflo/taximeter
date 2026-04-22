@@ -6,4 +6,6 @@ sealed interface PassengerListAction {
     data object AddPassenger : PassengerListAction
     data class DeletePassenger(val id: Long) : PassengerListAction
     data class SelectPassenger(val id: Long) : PassengerListAction
+    data object ShowAllRoutesMap : PassengerListAction
+    data object OpenSettings : PassengerListAction
 }

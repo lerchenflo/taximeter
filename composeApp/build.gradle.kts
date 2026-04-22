@@ -80,6 +80,9 @@ kotlin {
             //navigation
             implementation(libs.navigation.compose)
 
+            //map
+            implementation(libs.maplibre.compose)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

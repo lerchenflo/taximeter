@@ -64,6 +64,12 @@ class PassengerRoutesViewModel(
                     _events.send(PassengerRoutesEvent.NavigateBack)
                 }
             }
+
+            is PassengerRoutesAction.ShowRouteMap -> {
+                viewModelScope.launch {
+                    _events.send(PassengerRoutesEvent.NavigateToRouteMap(passengerId))
+                }
+            }
         }
     }
 }

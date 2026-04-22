@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,6 +45,7 @@ fun PassengerRoutesRoot(
     passengerId: Long,
     onStartRoute: (Long) -> Unit,
     onRouteClick: (Long, Long) -> Unit,
+    onShowMap: (Long) -> Unit,
     onBack: () -> Unit,
     viewModel: PassengerRoutesViewModel = koinViewModel()
 ) {
@@ -59,6 +61,7 @@ fun PassengerRoutesRoot(
                 }
             }
             is PassengerRoutesEvent.NavigateBack -> onBack()
+            is PassengerRoutesEvent.NavigateToRouteMap -> onShowMap(event.passengerId)
         }
     }
 
@@ -81,6 +84,11 @@ fun PassengerRoutesScreen(
                 navigationIcon = {
                     IconButton(onClick = { onAction(PassengerRoutesAction.GoBack) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { onAction(PassengerRoutesAction.ShowRouteMap) }) {
+                        Icon(Icons.Default.Map, contentDescription = "Show routes on map")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

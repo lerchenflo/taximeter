@@ -193,7 +193,13 @@ fun TaximeterScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(
-                        onClick = { onAction(TaximeterAction.ToggleRunning) },
+                        onClick = {
+                            if (state.isRunning) {
+                                onAction(TaximeterAction.StopAndFinish)
+                            } else {
+                                onAction(TaximeterAction.ToggleRunning)
+                            }
+                        },
                         modifier = Modifier.size(96.dp),
                         shape = CircleShape,
                         colors = if (state.isRunning) {
@@ -212,18 +218,6 @@ fun TaximeterScreen(
                                 contentDescription = "Start",
                                 modifier = Modifier.size(36.dp)
                             )
-                        }
-                    }
-
-                    if (state.distanceMeters > 0 && !state.isRunning) {
-                        Spacer(Modifier.height(16.dp))
-                        FilledTonalButton(
-                            onClick = { onAction(TaximeterAction.StopAndFinish) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                        ) {
-                            Text("Finish Ride")
                         }
                     }
                 }

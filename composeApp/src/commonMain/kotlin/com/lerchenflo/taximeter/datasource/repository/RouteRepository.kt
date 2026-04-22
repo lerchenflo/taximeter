@@ -51,4 +51,9 @@ class RouteRepository(
 
     fun getRoutePoints(routeId: Long): Flow<List<RoutePoint>> =
         routePointDao.getByRouteId(routeId)
+
+    fun getAllRoutes(): Flow<List<Route>> = routeDao.getAll()
+
+    suspend fun getRoutePointsOnce(routeId: Long): List<RoutePoint> =
+        routePointDao.getByRouteIdOnce(routeId)
 }
