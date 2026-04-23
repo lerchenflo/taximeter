@@ -38,6 +38,7 @@ class TaximeterViewModel(
     private var lastLat: Double? = null
     private var lastLon: Double? = null
     private var startTimeMillis: Long = 0L
+    private var pendingStart: Boolean = false
 
     init {
         viewModelScope.launch {
@@ -74,6 +75,7 @@ class TaximeterViewModel(
             is TaximeterAction.ToggleRunning -> {
                 if (_state.value.isRouteCompleted) return
                 if (!_state.value.hasLocationPermission) {
+                    pendingStart = true
                     viewModelScope.launch {
                         _events.send(TaximeterEvent.RequestLocationPermission)
                     }
@@ -92,7 +94,8 @@ class TaximeterViewModel(
 
             is TaximeterAction.OnPermissionResult -> {
                 _state.update { it.copy(hasLocationPermission = action.granted) }
-                if (action.granted && !_state.value.isRunning && !_state.value.isRouteCompleted) {
+                if (action.granted && pendingStart && !_state.value.isRunning && !_state.value.isRouteCompleted) {
+                    pendingStart = false
                     startTracking()
                 }
             }

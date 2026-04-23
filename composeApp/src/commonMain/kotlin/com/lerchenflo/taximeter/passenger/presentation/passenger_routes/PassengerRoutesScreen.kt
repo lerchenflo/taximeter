@@ -43,7 +43,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun PassengerRoutesRoot(
     passengerId: Long,
-    onStartRoute: (Long) -> Unit,
+    onNavigateToHome: () -> Unit,
     onRouteClick: (Long, Long) -> Unit,
     onShowMap: (Long) -> Unit,
     onBack: () -> Unit,
@@ -53,12 +53,9 @@ fun PassengerRoutesRoot(
 
     ObserveEvents(viewModel.events) { event ->
         when (event) {
+            is PassengerRoutesEvent.NavigateToHome -> onNavigateToHome()
             is PassengerRoutesEvent.NavigateToTaximeter -> {
-                if (event.routeId == -1L) {
-                    onStartRoute(event.passengerId)
-                } else {
-                    onRouteClick(event.passengerId, event.routeId)
-                }
+                onRouteClick(event.passengerId, event.routeId)
             }
             is PassengerRoutesEvent.NavigateBack -> onBack()
             is PassengerRoutesEvent.NavigateToRouteMap -> onShowMap(event.passengerId)

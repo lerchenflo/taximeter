@@ -51,6 +51,8 @@ Room database with destructive migration fallback. Entities: `Passenger`, `Route
 ./gradlew :androidapp:assembleDebug
 ```
 
+Multiple Claude instances may edit this codebase concurrently. Ignore pre-existing build errors unrelated to your changes.
+
 ## Conventions
 
 - Package: `com.lerchenflo.taximeter` (shared), `com.lerchenflo.androidapp` (Android app)

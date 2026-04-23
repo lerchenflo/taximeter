@@ -5,6 +5,7 @@ import com.lerchenflo.taximeter.datasource.database.CreateAppDatabase
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
 import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
+import com.lerchenflo.taximeter.home.presentation.HomeViewModel
 import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListViewModel
 import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesViewModel
 import com.lerchenflo.taximeter.routemap.presentation.RouteMapViewModel
@@ -27,6 +28,7 @@ val datasourceModule = module {
 }
 
 val presentationModule = module {
+    viewModelOf(::HomeViewModel)
     viewModelOf(::PassengerListViewModel)
     viewModelOf(::PassengerRoutesViewModel)
     viewModelOf(::TaximeterViewModel)

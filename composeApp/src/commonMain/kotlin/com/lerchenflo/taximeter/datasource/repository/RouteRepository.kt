@@ -5,6 +5,7 @@ import com.lerchenflo.taximeter.datasource.database.RouteDao
 import com.lerchenflo.taximeter.datasource.database.RoutePointDao
 import com.lerchenflo.taximeter.datasource.database.entities.Route
 import com.lerchenflo.taximeter.datasource.database.entities.RoutePoint
+import com.lerchenflo.taximeter.datasource.database.entities.RouteWithPassenger
 import kotlinx.coroutines.flow.Flow
 
 class RouteRepository(
@@ -53,6 +54,9 @@ class RouteRepository(
         routePointDao.getByRouteId(routeId)
 
     fun getAllRoutes(): Flow<List<Route>> = routeDao.getAll()
+
+    fun getAllRoutesWithPassenger(): Flow<List<RouteWithPassenger>> =
+        routeDao.getAllWithPassengerName()
 
     suspend fun getRoutePointsOnce(routeId: Long): List<RoutePoint> =
         routePointDao.getByRouteIdOnce(routeId)

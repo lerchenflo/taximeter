@@ -48,8 +48,8 @@ class PassengerRoutesViewModel(
         when (action) {
             is PassengerRoutesAction.StartNewRoute -> {
                 viewModelScope.launch {
-                    val routeId = routeRepository.startRoute(passengerId)
-                    _events.send(PassengerRoutesEvent.NavigateToTaximeter(passengerId, routeId))
+                    routeRepository.startRoute(passengerId)
+                    _events.send(PassengerRoutesEvent.NavigateToHome)
                 }
             }
 

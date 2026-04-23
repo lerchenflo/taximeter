@@ -67,15 +67,9 @@ class PassengerListViewModel(
                 }
             }
 
-            is PassengerListAction.ShowAllRoutesMap -> {
+            is PassengerListAction.GoBack -> {
                 viewModelScope.launch {
-                    _events.send(PassengerListEvent.NavigateToRouteMap)
-                }
-            }
-
-            is PassengerListAction.OpenSettings -> {
-                viewModelScope.launch {
-                    _events.send(PassengerListEvent.NavigateToSettings)
+                    _events.send(PassengerListEvent.NavigateBack)
                 }
             }
         }

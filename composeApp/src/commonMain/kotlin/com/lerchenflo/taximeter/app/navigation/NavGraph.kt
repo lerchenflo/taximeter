@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.lerchenflo.taximeter.home.presentation.HomeRoot
 import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListRoot
 import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesRoot
 import com.lerchenflo.taximeter.routemap.presentation.RouteMapRoot
@@ -19,20 +20,32 @@ fun AppNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = PassengerListRoute,
+        startDestination = HomeRoute,
         modifier = modifier
     ) {
+        composable<HomeRoute> {
+            HomeRoot(
+                onOpenCustomerPicker = {
+                    navController.navigate(PassengerListRoute)
+                },
+                onOpenSettings = {
+                    navController.navigate(SettingsRoute)
+                },
+                onShowMap = {
+                    navController.navigate(RouteMapRoute())
+                },
+                onRouteClick = { passengerId, routeId ->
+                    navController.navigate(TaximeterRoute(passengerId, routeId))
+                }
+            )
+        }
+
         composable<PassengerListRoute> {
             PassengerListRoot(
                 onPassengerClick = { passengerId ->
                     navController.navigate(PassengerRoutesRoute(passengerId))
                 },
-                onShowMap = {
-                    navController.navigate(RouteMapRoute())
-                },
-                onOpenSettings = {
-                    navController.navigate(SettingsRoute)
-                }
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -40,8 +53,8 @@ fun AppNavGraph(
             val route = backStackEntry.toRoute<PassengerRoutesRoute>()
             PassengerRoutesRoot(
                 passengerId = route.passengerId,
-                onStartRoute = { passengerId ->
-                    navController.navigate(TaximeterRoute(passengerId))
+                onNavigateToHome = {
+                    navController.popBackStack(HomeRoute, inclusive = false)
                 },
                 onRouteClick = { passengerId, routeId ->
                     navController.navigate(TaximeterRoute(passengerId, routeId))

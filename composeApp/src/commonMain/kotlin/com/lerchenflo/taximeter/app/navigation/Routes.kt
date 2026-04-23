@@ -3,6 +3,9 @@ package com.lerchenflo.taximeter.app.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
+object HomeRoute
+
+@Serializable
 object PassengerListRoute
 
 @Serializable
