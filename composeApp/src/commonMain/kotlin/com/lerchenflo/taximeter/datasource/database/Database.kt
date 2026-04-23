@@ -10,7 +10,7 @@ import com.lerchenflo.taximeter.datasource.database.entities.RoutePoint
 
 @Database(
     entities = [Passenger::class, Route::class, RoutePoint::class],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @ConstructedBy(AppDatabaseConstructor::class)

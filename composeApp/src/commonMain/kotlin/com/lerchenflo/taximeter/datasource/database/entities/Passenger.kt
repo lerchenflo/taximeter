@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Passenger(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val name: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val color: Long = 0xFFE53935
 )

@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lerchenflo.taximeter.datasource.database.entities.Route
+import com.lerchenflo.taximeter.datasource.database.entities.RoutePoint
 import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
+import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
@@ -72,16 +74,19 @@ class RouteMapViewModel(
             val passengers = passengerRepository.getAllPassengers().first()
             val passengerMap = passengers.associateBy { it.id }
 
-            val polylines = routes.mapIndexed { index, route ->
+            val polylines = routes.map { route ->
                 async {
                     val points = routeRepository.getRoutePointsOnce(route.id)
                     if (points.size < 2) return@async null
+                    val passengerColor = passengerMap[route.passengerId]?.color ?: 0xFFE53935
+                    val speeds = computeSpeeds(points)
                     RoutePolyline(
                         routeId = route.id,
                         passengerName = passengerMap[route.passengerId]?.name ?: "Unknown",
                         latitudes = points.map { it.latitude },
                         longitudes = points.map { it.longitude },
-                        colorIndex = index % PALETTE_SIZE
+                        color = passengerColor,
+                        speeds = speeds
                     )
                 }
             }.awaitAll().filterNotNull()
@@ -90,7 +95,20 @@ class RouteMapViewModel(
         }
     }
 
-    companion object {
-        const val PALETTE_SIZE = 8
+    private fun computeSpeeds(points: List<RoutePoint>): List<Float> {
+        if (points.isEmpty()) return emptyList()
+        val hasStoredSpeed = points.any { it.speed > 0f }
+        if (hasStoredSpeed) return points.map { it.speed }
+
+        val speeds = mutableListOf(0f)
+        for (i in 1 until points.size) {
+            val dist = haversineDistance(
+                points[i - 1].latitude, points[i - 1].longitude,
+                points[i].latitude, points[i].longitude
+            )
+            val timeDelta = (points[i].timestamp - points[i - 1].timestamp) / 1000.0
+            speeds.add(if (timeDelta > 0) (dist / timeDelta).toFloat() else 0f)
+        }
+        return speeds
     }
 }

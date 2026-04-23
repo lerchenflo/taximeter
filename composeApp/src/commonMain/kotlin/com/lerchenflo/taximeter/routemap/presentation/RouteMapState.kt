@@ -14,5 +14,6 @@ data class RoutePolyline(
     val passengerName: String,
     val latitudes: List<Double>,
     val longitudes: List<Double>,
-    val colorIndex: Int
+    val color: Long,
+    val speeds: List<Float> = emptyList()
 )

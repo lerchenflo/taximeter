@@ -5,6 +5,7 @@ import com.lerchenflo.taximeter.datasource.database.CreateAppDatabase
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
 import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
+import com.lerchenflo.taximeter.taximeter.domain.TrackingStateHolder
 import com.lerchenflo.taximeter.home.presentation.HomeViewModel
 import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListViewModel
 import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesViewModel
@@ -25,6 +26,7 @@ val datasourceModule = module {
     singleOf(::Preferencemanager)
     singleOf(::PassengerRepository)
     singleOf(::RouteRepository)
+    singleOf(::TrackingStateHolder)
 }
 
 val presentationModule = module {

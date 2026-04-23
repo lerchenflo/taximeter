@@ -46,16 +46,36 @@ class PassengerRoutesViewModel(
 
     fun onAction(action: PassengerRoutesAction) {
         when (action) {
-            is PassengerRoutesAction.StartNewRoute -> {
+            is PassengerRoutesAction.ShowStartRideDialog -> {
+                _uiState.update { it.copy(isStartRideDialogVisible = true, newRouteName = "") }
+            }
+
+            is PassengerRoutesAction.DismissStartRideDialog -> {
+                _uiState.update { it.copy(isStartRideDialogVisible = false, newRouteName = "") }
+            }
+
+            is PassengerRoutesAction.UpdateRouteName -> {
+                _uiState.update { it.copy(newRouteName = action.name) }
+            }
+
+            is PassengerRoutesAction.ConfirmStartRoute -> {
+                val name = _uiState.value.newRouteName.trim()
                 viewModelScope.launch {
-                    routeRepository.startRoute(passengerId)
-                    _events.send(PassengerRoutesEvent.NavigateToHome)
+                    val routeId = routeRepository.startRoute(passengerId, name)
+                    _uiState.update { it.copy(isStartRideDialogVisible = false, newRouteName = "") }
+                    _events.send(PassengerRoutesEvent.NavigateToTaximeter(passengerId, routeId))
                 }
             }
 
             is PassengerRoutesAction.SelectRoute -> {
                 viewModelScope.launch {
                     _events.send(PassengerRoutesEvent.NavigateToTaximeter(passengerId, action.routeId))
+                }
+            }
+
+            is PassengerRoutesAction.DeleteRoute -> {
+                viewModelScope.launch {
+                    routeRepository.deleteRoute(action.routeId)
                 }
             }
 

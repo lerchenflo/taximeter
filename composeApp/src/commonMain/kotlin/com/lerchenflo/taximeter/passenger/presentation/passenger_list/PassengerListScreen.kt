@@ -1,6 +1,7 @@
 package com.lerchenflo.taximeter.passenger.presentation.passenger_list
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -37,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.lerchenflo.taximeter.utilities.toComposeColor
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import org.koin.compose.viewmodel.koinViewModel
@@ -169,10 +173,16 @@ private fun PassengerCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .background(passenger.color.toComposeColor(), CircleShape)
+            )
             Icon(
                 Icons.Default.Person,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 8.dp)
             )
             Text(
                 text = passenger.name,

@@ -4,23 +4,23 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
-import com.lerchenflo.taximeter.taximeter.domain.LocationTracker
-import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
-import com.lerchenflo.taximeter.utilities.currentTimeMillis
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
-import kotlinx.coroutines.Job
+import com.lerchenflo.taximeter.taximeter.domain.TrackingServiceController
+import com.lerchenflo.taximeter.taximeter.domain.TrackingStateHolder
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TaximeterViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val routeRepository: RouteRepository,
-    private val locationTracker: LocationTracker,
+    private val trackingServiceController: TrackingServiceController,
+    private val trackingStateHolder: TrackingStateHolder,
     private val preferencemanager: Preferencemanager
 ) : ViewModel() {
 
@@ -28,17 +28,28 @@ class TaximeterViewModel(
     private val routeId: Long = savedStateHandle.get<Long>("routeId") ?: -1L
 
     private val _state = MutableStateFlow(TaximeterState())
-    val state = _state.asStateFlow()
+    val state = combine(
+        _state,
+        trackingStateHolder.state
+    ) { uiState, tracking ->
+        if (tracking.isRunning && tracking.routeId == routeId) {
+            uiState.copy(
+                isRunning = true,
+                distanceMeters = tracking.distanceMeters,
+                currentPrice = tracking.currentPrice,
+                durationSeconds = tracking.durationSeconds
+            )
+        } else {
+            uiState.copy(isRunning = false)
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        TaximeterState()
+    )
 
     private val _events = Channel<TaximeterEvent>()
     val events = _events.receiveAsFlow()
-
-    private var locationJob: Job? = null
-    private var timerJob: Job? = null
-    private var lastLat: Double? = null
-    private var lastLon: Double? = null
-    private var startTimeMillis: Long = 0L
-    private var pendingStart: Boolean = false
 
     init {
         viewModelScope.launch {
@@ -75,27 +86,23 @@ class TaximeterViewModel(
             is TaximeterAction.ToggleRunning -> {
                 if (_state.value.isRouteCompleted) return
                 if (!_state.value.hasLocationPermission) {
-                    pendingStart = true
                     viewModelScope.launch {
                         _events.send(TaximeterEvent.RequestLocationPermission)
                     }
                     return
                 }
-                if (_state.value.isRunning) {
-                    pauseTracking()
+                if (trackingStateHolder.state.value.isRunning) {
+                    stopTracking()
                 } else {
                     startTracking()
                 }
             }
 
-            is TaximeterAction.StopAndFinish -> {
-                finishRoute()
-            }
+            is TaximeterAction.StopAndFinish -> finishRoute()
 
             is TaximeterAction.OnPermissionResult -> {
                 _state.update { it.copy(hasLocationPermission = action.granted) }
-                if (action.granted && pendingStart && !_state.value.isRunning && !_state.value.isRouteCompleted) {
-                    pendingStart = false
+                if (action.granted && !trackingStateHolder.state.value.isRunning && !_state.value.isRouteCompleted) {
                     startTracking()
                 }
             }
@@ -109,96 +116,34 @@ class TaximeterViewModel(
     }
 
     private fun startTracking() {
-        _state.update { it.copy(isRunning = true) }
-        startTimeMillis = currentTimeMillis()
-
-        timerJob = viewModelScope.launch {
-            while (true) {
-                delay(1000)
-                val elapsed = (currentTimeMillis() - startTimeMillis) / 1000
-                _state.update { it.copy(durationSeconds = elapsed) }
-            }
-        }
-
-        locationJob = viewModelScope.launch {
-            try {
-                locationTracker.startTracking().collect { point ->
-                    val prevLat = lastLat
-                    val prevLon = lastLon
-
-                    if (prevLat != null && prevLon != null) {
-                        val distance =
-                            haversineDistance(prevLat, prevLon, point.latitude, point.longitude)
-                        if (distance > 2.0) {
-                            val newTotalDistance = _state.value.distanceMeters + distance
-                            val newPrice =
-                                _state.value.baseFare + (newTotalDistance / 1000.0) * _state.value.pricePerKm
-
-                            _state.update {
-                                it.copy(
-                                    distanceMeters = newTotalDistance,
-                                    currentPrice = newPrice
-                                )
-                            }
-
-                            if (routeId != -1L) {
-                                routeRepository.addRoutePoint(
-                                    routeId,
-                                    point.latitude,
-                                    point.longitude
-                                )
-                                val route = routeRepository.getRouteById(routeId)
-                                if (route != null) {
-                                    routeRepository.updateRoute(
-                                        route.copy(
-                                            totalDistanceMeters = newTotalDistance,
-                                            totalPrice = newPrice
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        if (routeId != -1L) {
-                            routeRepository.addRoutePoint(
-                                routeId,
-                                point.latitude,
-                                point.longitude
-                            )
-                        }
-                    }
-
-                    lastLat = point.latitude
-                    lastLon = point.longitude
-                }
-            } catch (e: Exception) {
-                _state.update { it.copy(isRunning = false) }
-                timerJob?.cancel()
-            }
-        }
+        if (routeId == -1L) return
+        trackingStateHolder.update { it.copy(isRunning = true, routeId = routeId) }
+        trackingServiceController.startTracking(routeId)
     }
 
-    private fun pauseTracking() {
-        locationJob?.cancel()
-        timerJob?.cancel()
-        locationTracker.stopTracking()
-        _state.update { it.copy(isRunning = false) }
+    private fun stopTracking() {
+        trackingServiceController.stopTracking()
+        trackingStateHolder.update { it.copy(isRunning = false) }
     }
 
     private fun finishRoute() {
-        pauseTracking()
+        stopTracking()
         viewModelScope.launch {
             if (routeId != -1L) {
                 val route = routeRepository.getRouteById(routeId)
                 if (route != null) {
+                    val tracking = trackingStateHolder.state.value
                     routeRepository.finishRoute(
                         route.copy(
-                            totalDistanceMeters = _state.value.distanceMeters,
-                            totalPrice = _state.value.currentPrice
+                            totalDistanceMeters = tracking.distanceMeters.takeIf { it > 0 }
+                                ?: _state.value.distanceMeters,
+                            totalPrice = tracking.currentPrice.takeIf { it > 0 }
+                                ?: _state.value.currentPrice
                         )
                     )
                 }
             }
+            trackingStateHolder.reset()
             _state.update { it.copy(isRouteCompleted = true) }
             _events.send(TaximeterEvent.RouteCompleted)
         }
@@ -206,8 +151,5 @@ class TaximeterViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        locationJob?.cancel()
-        timerJob?.cancel()
-        locationTracker.stopTracking()
     }
 }

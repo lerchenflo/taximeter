@@ -53,9 +53,6 @@ fun AppNavGraph(
             val route = backStackEntry.toRoute<PassengerRoutesRoute>()
             PassengerRoutesRoot(
                 passengerId = route.passengerId,
-                onNavigateToHome = {
-                    navController.popBackStack(HomeRoute, inclusive = false)
-                },
                 onRouteClick = { passengerId, routeId ->
                     navController.navigate(TaximeterRoute(passengerId, routeId))
                 },

@@ -29,7 +29,8 @@ class AndroidLocationTracker(
                     LocationPoint(
                         latitude = location.latitude,
                         longitude = location.longitude,
-                        timestamp = location.time
+                        timestamp = location.time,
+                        speed = if (location.hasSpeed()) location.speed else 0f
                     )
                 )
             }

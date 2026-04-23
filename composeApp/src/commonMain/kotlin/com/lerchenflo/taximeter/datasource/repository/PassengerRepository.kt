@@ -1,6 +1,7 @@
 package com.lerchenflo.taximeter.datasource.repository
 
 import com.lerchenflo.taximeter.utilities.currentTimeMillis
+import com.lerchenflo.taximeter.utilities.generateRandomColor
 import com.lerchenflo.taximeter.datasource.database.PassengerDao
 import com.lerchenflo.taximeter.datasource.database.entities.Passenger
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,8 @@ class PassengerRepository(
     suspend fun addPassenger(name: String): Long {
         val passenger = Passenger(
             name = name,
-            createdAt = currentTimeMillis()
+            createdAt = currentTimeMillis(),
+            color = generateRandomColor()
         )
         return passengerDao.insert(passenger)
     }

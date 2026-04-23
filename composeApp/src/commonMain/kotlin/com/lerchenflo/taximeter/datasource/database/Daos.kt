@@ -47,6 +47,9 @@ interface RouteDao {
 
     @Query("SELECT r.*, p.name AS passengerName FROM routes r JOIN passengers p ON r.passengerId = p.id WHERE r.isActive = 0 ORDER BY r.startTime DESC")
     fun getAllWithPassengerName(): Flow<List<RouteWithPassenger>>
+
+    @Query("DELETE FROM routes WHERE id = :routeId")
+    suspend fun deleteById(routeId: Long)
 }
 
 @Dao

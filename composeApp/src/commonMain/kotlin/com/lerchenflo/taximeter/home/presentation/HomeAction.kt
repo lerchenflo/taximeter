@@ -1,9 +1,6 @@
 package com.lerchenflo.taximeter.home.presentation
 
 sealed interface HomeAction {
-    data object ToggleRunning : HomeAction
-    data object StopAndFinish : HomeAction
-    data class OnPermissionResult(val granted: Boolean) : HomeAction
     data object OpenCustomerPicker : HomeAction
     data object OpenSettings : HomeAction
     data object ShowAllRoutesMap : HomeAction

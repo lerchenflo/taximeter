@@ -52,9 +52,16 @@ fun TaximeterRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val permissionState = rememberLocationPermissionState()
+    val notifPermissionState = rememberNotificationPermissionState()
 
     LaunchedEffect(permissionState.hasPermission) {
         viewModel.onAction(TaximeterAction.OnPermissionResult(permissionState.hasPermission))
+    }
+
+    LaunchedEffect(Unit) {
+        if (!notifPermissionState.hasPermission) {
+            notifPermissionState.requestPermission()
+        }
     }
 
     ObserveEvents(viewModel.events) { event ->

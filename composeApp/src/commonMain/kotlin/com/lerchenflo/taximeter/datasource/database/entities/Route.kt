@@ -20,6 +20,7 @@ import androidx.room.PrimaryKey
 data class Route(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val passengerId: Long,
+    val name: String = "",
     val startTime: Long,
     val endTime: Long? = null,
     val totalDistanceMeters: Double = 0.0,

@@ -19,9 +19,10 @@ class RouteRepository(
 
     suspend fun getActiveRoute(): Route? = routeDao.getActiveRoute()
 
-    suspend fun startRoute(passengerId: Long): Long {
+    suspend fun startRoute(passengerId: Long, name: String = ""): Long {
         val route = Route(
             passengerId = passengerId,
+            name = name,
             startTime = currentTimeMillis()
         )
         return routeDao.insert(route)
@@ -40,15 +41,18 @@ class RouteRepository(
         routeDao.update(route)
     }
 
-    suspend fun addRoutePoint(routeId: Long, latitude: Double, longitude: Double): Long {
+    suspend fun addRoutePoint(routeId: Long, latitude: Double, longitude: Double, speed: Float = 0f): Long {
         val point = RoutePoint(
             routeId = routeId,
             latitude = latitude,
             longitude = longitude,
-            timestamp = currentTimeMillis()
+            timestamp = currentTimeMillis(),
+            speed = speed
         )
         return routePointDao.insert(point)
     }
+
+    suspend fun deleteRoute(routeId: Long) = routeDao.deleteById(routeId)
 
     fun getRoutePoints(routeId: Long): Flow<List<RoutePoint>> =
         routePointDao.getByRouteId(routeId)
