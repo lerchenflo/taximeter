@@ -1,3 +1,107 @@
 <resources>
     <string name="app_name">Taximeter</string>
+
+    <!-- Passenger Routes Screen -->
+    <string name="passenger_routes_ride_history">RIDE HISTORY</string>
+    <string name="passenger_routes_all_time">ALL TIME</string>
+    <string name="passenger_routes_empty_state">No rides yet. Tap Start ride to begin.</string>
+    <string name="passenger_routes_start_ride_button">Start ride</string>
+
+    <!-- Passenger Header -->
+    <string name="passenger_header_rides_total">PASSENGER · %d RIDES TOTAL</string>
+
+    <!-- Stats Strip -->
+    <string name="stats_label_rides">RIDES</string>
+    <string name="stats_label_distance">DIST</string>
+    <string name="stats_label_total">TOTAL</string>
+
+    <!-- Start Ride Sheet -->
+    <string name="start_ride_title">START RIDE</string>
+    <string name="start_ride_route_name_label">ROUTE NAME — OPTIONAL</string>
+    <string name="start_ride_route_name_placeholder">e.g. Airport transfer</string>
+    <string name="start_ride_cancel_button">Cancel</string>
+    <string name="start_ride_confirm_button">Start meter</string>
+
+    <!-- Delete Ride Dialog -->
+    <string name="delete_ride_title">DELETE RIDE</string>
+    <string name="delete_ride_description">This will permanently delete the ride and all recorded points.</string>
+    <string name="delete_ride_cancel_button">Cancel</string>
+    <string name="delete_ride_confirm_button">Delete ride</string>
+
+    <!-- Home Screen -->
+    <string name="home_app_title">Taximeter</string>
+    <string name="home_month_year">APR 2026</string>
+    <string name="home_recent_rides_header">RECENT RIDES</string>
+    <string name="home_new_ride_button">New ride</string>
+
+    <!-- Passenger List Screen -->
+    <string name="passenger_list_step_indicator">STEP 1 OF 2</string>
+    <string name="passenger_list_title">Select passenger</string>
+    <string name="passenger_list_search_placeholder">Search %d passengers…</string>
+    <string name="passenger_list_result_count">%d result%s · A–Z</string>
+    <string name="passenger_list_no_results">No passengers match "%s"</string>
+    <string name="passenger_list_add_button_description">Add passenger</string>
+    <string name="passenger_list_sheet_header">NEW PASSENGER</string>
+    <string name="passenger_list_sheet_title">Add a customer</string>
+    <string name="passenger_list_name_placeholder">Full name</string>
+    <string name="passenger_list_cancel_button">Cancel</string>
+    <string name="passenger_list_add_button">Add passenger</string>
+
+    <!-- Passenger Routes Screen -->
+    <string name="passenger_routes_untitled_ride">Untitled ride</string>
+    <string name="passenger_routes_currency">EUR</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_preferences_label">PREFERENCES</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_tariff_section">Tariff</string>
+    <string name="settings_base_fare_label">Base fare</string>
+    <string name="settings_base_fare_description">Charged immediately</string>
+    <string name="settings_base_fare_unit">€</string>
+    <string name="settings_price_per_km_label">Price per km</string>
+    <string name="settings_price_per_km_description">After first 200 m</string>
+    <string name="settings_price_per_km_unit">€/km</string>
+    <string name="settings_idle_rate_label">Idle rate</string>
+    <string name="settings_idle_rate_description">Charged when stopped</string>
+    <string name="settings_idle_rate_unit">€/min</string>
+    <string name="settings_fare_preview_section">Fare preview</string>
+    <string name="settings_fare_preview_description">A 10 KM · 15 MIN RIDE</string>
+    <string name="settings_fare_preview_base">base</string>
+    <string name="settings_fare_preview_distance">dist</string>
+    <string name="settings_fare_preview_idle">idle</string>
+    <string name="settings_version">Taximeter · v1.3.0</string>
+    <string name="settings_tagline">local-first · no account</string>
+    <string name="settings_save_button_saved">Saved</string>
+    <string name="settings_save_button_unsaved">Save changes</string>
+    <string name="settings_save_button_uptodate">Up to date</string>
+    <string name="settings_dialog_ok_button">OK</string>
+    <string name="settings_dialog_cancel_button">Cancel</string>
+
+    <!-- Taximeter Screen -->
+    <string name="taximeter_gps_error_disabled">GPS disabled — enable location services</string>
+    <string name="taximeter_gps_error_permission">Location permission revoked</string>
+    <string name="taximeter_status_active">ACTIVE RIDE</string>
+    <string name="taximeter_status_completed">COMPLETED</string>
+    <string name="taximeter_status_paused">PAUSED</string>
+    <string name="taximeter_default_ride_name">Ride</string>
+    <string name="taximeter_gps_status_lock">● GPS LOCK</string>
+    <string name="taximeter_gps_status_searching">◐ SEARCHING</string>
+    <string name="taximeter_gps_status_idle">○ IDLE</string>
+    <string name="taximeter_fare_label">FARE · EUR</string>
+    <string name="taximeter_recording_label">● RECORDING</string>
+    <string name="taximeter_searching_label">◐ SEARCHING</string>
+    <string name="taximeter_paused_label">○ PAUSED</string>
+    <string name="taximeter_base_label">BASE </string>
+    <string name="taximeter_tariff_section">TARIFF A · DAY</string>
+    <string name="taximeter_timezone">CEST</string>
+    <string name="taximeter_tariff_base">Base</string>
+    <string name="taximeter_tariff_per_km">Per km</string>
+    <string name="taximeter_tariff_per_min_idle">Per min idle</string>
+    <string name="taximeter_start_button_description">Start</string>
+    <string name="taximeter_done_button">Done</string>
+
+    <!-- Route Map Screen -->
+    <string name="route_map_title">Route Map</string>
+    <string name="route_map_back_button_description">Back</string>
+    <string name="route_map_all_passengers_chip">All</string>
 </resources>

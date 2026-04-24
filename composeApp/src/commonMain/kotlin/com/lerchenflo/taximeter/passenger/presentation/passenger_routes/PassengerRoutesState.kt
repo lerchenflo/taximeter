@@ -8,5 +8,6 @@ data class PassengerRoutesState(
     val routes: List<Route> = emptyList(),
     val isLoading: Boolean = true,
     val isStartRideDialogVisible: Boolean = false,
-    val newRouteName: String = ""
+    val newRouteName: String = "",
+    val routeToDeleteId: Long? = null
 )

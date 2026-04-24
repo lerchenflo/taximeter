@@ -36,9 +36,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.toComposeColor
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.*
 import org.maplibre.compose.expressions.ast.Expression
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.feature
@@ -97,10 +100,10 @@ fun RouteMapScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Route Map") },
+                title = { Text(stringResource(Res.string.route_map_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onAction(RouteMapAction.GoBack) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.route_map_back_button_description))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -126,7 +129,7 @@ fun RouteMapScreen(
                     FilterChip(
                         selected = state.selectedPassengerId == -1L,
                         onClick = { onAction(RouteMapAction.SelectPassenger(-1L)) },
-                        label = { Text("All") }
+                        label = { Text(stringResource(Res.string.route_map_all_passengers_chip)) }
                     )
                     state.passengers.forEach { passenger ->
                         FilterChip(

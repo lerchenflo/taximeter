@@ -3,6 +3,7 @@ package com.lerchenflo.taximeter.passenger.presentation.passenger_routes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Route
@@ -47,6 +49,7 @@ import com.lerchenflo.taximeter.app.theme.Live
 import com.lerchenflo.taximeter.app.theme.LiveDim
 import com.lerchenflo.taximeter.app.theme.Mono
 import com.lerchenflo.taximeter.app.theme.OnAccent
+import com.lerchenflo.taximeter.app.theme.Red
 import com.lerchenflo.taximeter.app.theme.Surface
 import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
@@ -59,7 +62,10 @@ import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDateTime
 import com.lerchenflo.taximeter.utilities.formatPrice
 import com.lerchenflo.taximeter.utilities.toComposeColor
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.*
 
 @Composable
 fun PassengerRoutesRoot(
@@ -144,8 +150,8 @@ fun PassengerRoutesScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("RIDE HISTORY", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.4.sp)
-                Text("ALL TIME", fontFamily = Mono, fontSize = 11.sp, color = TextSecondary, letterSpacing = 0.5.sp)
+                Text(stringResource(Res.string.passenger_routes_ride_history), fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.4.sp)
+                Text(stringResource(Res.string.passenger_routes_all_time), fontFamily = Mono, fontSize = 11.sp, color = TextSecondary, letterSpacing = 0.5.sp)
             }
 
             // Route list
@@ -156,14 +162,15 @@ fun PassengerRoutesScreen(
                             modifier = Modifier.fillMaxWidth().padding(30.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("No rides yet. Tap Start ride to begin.", color = TextTertiary, fontSize = 13.sp)
+                            Text(stringResource(Res.string.passenger_routes_empty_state), color = TextTertiary, fontSize = 13.sp)
                         }
                     }
                 }
                 items(state.routes, key = { it.id }) { route ->
                     RouteItem(
                         route = route,
-                        onClick = { onAction(PassengerRoutesAction.SelectRoute(route.id)) }
+                        onClick = { onAction(PassengerRoutesAction.SelectRoute(route.id)) },
+                        onLongClick = { onAction(PassengerRoutesAction.ShowDeleteConfirm(route.id)) }
                     )
                 }
                 item { Spacer(Modifier.height(100.dp)) }
@@ -185,8 +192,18 @@ fun PassengerRoutesScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null, tint = OnAccent, modifier = Modifier.size(16.dp))
-                Text("Start ride", color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Text(stringResource(Res.string.passenger_routes_start_ride_button), color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
+        }
+
+        // Delete confirm dialog
+        val routeToDelete = state.routes.find { it.id == state.routeToDeleteId }
+        if (routeToDelete != null) {
+            DeleteConfirmSheet(
+                routeName = routeToDelete.name.ifBlank { stringResource(Res.string.passenger_routes_untitled_ride) },
+                onConfirm = { onAction(PassengerRoutesAction.DeleteRoute(routeToDelete.id)) },
+                onDismiss = { onAction(PassengerRoutesAction.DismissDeleteConfirm) }
+            )
         }
 
         // Start ride dialog
@@ -234,7 +251,7 @@ private fun PassengerHeader(passenger: Passenger, routeCount: Int) {
                 letterSpacing = (-0.4).sp
             )
             Text(
-                text = "PASSENGER · $routeCount RIDES TOTAL",
+                text = stringResource(Res.string.passenger_header_rides_total, routeCount),
                 fontFamily = Mono,
                 fontSize = 11.sp,
                 color = TextTertiary,
@@ -256,9 +273,9 @@ private fun StatsStrip(rides: Int, distKm: Double, totalEur: Double, modifier: M
             .border(1.dp, Line, RoundedCornerShape(14.dp))
     ) {
         listOf(
-            "RIDES" to rides.toString(),
-            "DIST" to "${distKm.format1f()} km",
-            "TOTAL" to "€ ${totalEur.format0f()}"
+            stringResource(Res.string.stats_label_rides) to rides.toString(),
+            stringResource(Res.string.stats_label_distance) to "${distKm.format1f()} km",
+            stringResource(Res.string.stats_label_total) to "€ ${totalEur.format0f()}"
         ).forEachIndexed { i, (label, value) ->
             if (i > 0) {
                 Box(modifier = Modifier.width(1.dp).height(52.dp).background(Line))
@@ -284,12 +301,12 @@ private fun StatsStrip(rides: Int, distKm: Double, totalEur: Double, modifier: M
 }
 
 @Composable
-private fun RouteItem(route: Route, onClick: () -> Unit) {
+private fun RouteItem(route: Route, onClick: () -> Unit, onLongClick: () -> Unit) {
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
                 .padding(horizontal = 22.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -315,7 +332,7 @@ private fun RouteItem(route: Route, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = route.name.ifBlank { "Untitled ride" },
+                        text = route.name.ifBlank { stringResource(Res.string.passenger_routes_untitled_ride) },
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = TextPrimary,
@@ -352,7 +369,7 @@ private fun RouteItem(route: Route, onClick: () -> Unit) {
                     color = if (route.isActive) Accent else TextPrimary,
                     letterSpacing = (-0.2).sp
                 )
-                Text("EUR", fontFamily = Mono, fontSize = 9.sp, color = TextTertiary, letterSpacing = 0.8.sp)
+                Text(stringResource(Res.string.passenger_routes_currency), fontFamily = Mono, fontSize = 9.sp, color = TextTertiary, letterSpacing = 0.8.sp)
             }
         }
         Box(
@@ -406,11 +423,11 @@ private fun StartRideSheet(
                     Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Accent, modifier = Modifier.size(16.dp))
                 }
                 Column {
-                    Text("START RIDE", fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.2.sp)
+                    Text(stringResource(Res.string.start_ride_title), fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.2.sp)
                     Text(passenger?.name ?: "", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                 }
             }
-            Text("ROUTE NAME — OPTIONAL", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.sp)
+            Text(stringResource(Res.string.start_ride_route_name_label), fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.sp)
             BasicTextField(
                 value = name,
                 onValueChange = onNameChange,
@@ -425,7 +442,7 @@ private fun StartRideSheet(
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 decorationBox = { inner ->
                     if (name.isEmpty()) {
-                        Text("e.g. Airport transfer", color = TextTertiary, fontSize = 14.sp)
+                        Text(stringResource(Res.string.start_ride_route_name_placeholder), color = TextTertiary, fontSize = 14.sp)
                     }
                     inner()
                 }
@@ -443,7 +460,7 @@ private fun StartRideSheet(
                         .clickable(onClick = onDismiss),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Cancel", color = TextSecondary, fontSize = 14.sp)
+                    Text(stringResource(Res.string.start_ride_cancel_button), color = TextSecondary, fontSize = 14.sp)
                 }
                 Box(
                     modifier = Modifier
@@ -459,7 +476,90 @@ private fun StartRideSheet(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = null, tint = OnAccent, modifier = Modifier.size(14.dp))
-                        Text("Start meter", color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(stringResource(Res.string.start_ride_confirm_button), color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteConfirmSheet(
+    routeName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xBF0A0B0C))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Surface)
+                .border(1.dp, LineHi, RoundedCornerShape(20.dp))
+                .clickable(enabled = false, onClick = {})
+                .padding(22.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(bottom = 14.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0x23E77271))
+                        .border(1.dp, Color(0x44E77271), RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = Red, modifier = Modifier.size(16.dp))
+                }
+                Column {
+                    Text(stringResource(Res.string.delete_ride_title), fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.2.sp)
+                    Text(routeName, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                }
+            }
+            Text(
+                stringResource(Res.string.delete_ride_description),
+                fontSize = 13.sp,
+                color = TextSecondary,
+                modifier = Modifier.padding(bottom = 18.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, Line, RoundedCornerShape(12.dp))
+                        .clickable(onClick = onDismiss),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(stringResource(Res.string.delete_ride_cancel_button), color = TextSecondary, fontSize = 14.sp)
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(2f)
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Red)
+                        .clickable(onClick = onConfirm),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = OnAccent, modifier = Modifier.size(14.dp))
+                        Text(stringResource(Res.string.delete_ride_confirm_button), color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                 }
             }

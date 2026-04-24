@@ -54,7 +54,10 @@ import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.datasource.database.entities.Passenger
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.toComposeColor
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.*
 
 private val swatchColors = listOf(
     0xFFF0A24BL, 0xFF7AD4A5L, 0xFF8BB8F0L, 0xFFE77271L, 0xFFC79BE0L
@@ -118,14 +121,14 @@ fun PassengerListScreen(
                 }
                 Column {
                     Text(
-                        text = "STEP 1 OF 2",
+                        text = stringResource(Res.string.passenger_list_step_indicator),
                         fontFamily = Mono,
                         fontSize = 10.sp,
                         color = TextTertiary,
                         letterSpacing = 1.2.sp
                     )
                     Text(
-                        text = "Select passenger",
+                        text = stringResource(Res.string.passenger_list_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary,
@@ -155,7 +158,7 @@ fun PassengerListScreen(
                     modifier = Modifier.weight(1f),
                     decorationBox = { inner ->
                         if (query.isEmpty()) {
-                            Text("Search ${state.passengers.size} passengers…", color = TextTertiary, fontSize = 14.sp)
+                            Text(stringResource(Res.string.passenger_list_search_placeholder, state.passengers.size), color = TextTertiary, fontSize = 14.sp)
                         }
                         inner()
                     }
@@ -164,7 +167,7 @@ fun PassengerListScreen(
 
             // Result count
             Text(
-                text = "${filtered.size} result${if (filtered.size == 1) "" else "s"} · A–Z",
+                text = stringResource(Res.string.passenger_list_result_count, filtered.size, if (filtered.size == 1) "" else "s"),
                 fontFamily = Mono,
                 fontSize = 10.sp,
                 color = TextTertiary,
@@ -187,7 +190,7 @@ fun PassengerListScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "No passengers match \"$query\"",
+                                stringResource(Res.string.passenger_list_no_results, query),
                                 color = TextTertiary,
                                 fontSize = 13.sp
                             )
@@ -209,7 +212,7 @@ fun PassengerListScreen(
                 .clickable { onAction(PassengerListAction.ToggleAddDialog) },
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add passenger", tint = OnAccent, modifier = Modifier.size(22.dp))
+            Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.passenger_list_add_button_description), tint = OnAccent, modifier = Modifier.size(22.dp))
         }
 
         // Add passenger sheet
@@ -316,14 +319,14 @@ private fun AddPassengerSheet(
                 .padding(22.dp)
         ) {
             Text(
-                text = "NEW PASSENGER",
+                text = stringResource(Res.string.passenger_list_sheet_header),
                 fontFamily = Mono,
                 fontSize = 10.sp,
                 color = TextTertiary,
                 letterSpacing = 1.2.sp
             )
             Text(
-                text = "Add a customer",
+                text = stringResource(Res.string.passenger_list_sheet_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
@@ -342,7 +345,7 @@ private fun AddPassengerSheet(
                     .padding(14.dp),
                 decorationBox = { inner ->
                     if (name.isEmpty()) {
-                        Text("Full name", color = TextTertiary, fontSize = 14.sp)
+                        Text(stringResource(Res.string.passenger_list_name_placeholder), color = TextTertiary, fontSize = 14.sp)
                     }
                     inner()
                 }
@@ -380,7 +383,7 @@ private fun AddPassengerSheet(
                         .clickable(onClick = onDismiss),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Cancel", color = TextSecondary, fontSize = 14.sp)
+                    Text(stringResource(Res.string.passenger_list_cancel_button), color = TextSecondary, fontSize = 14.sp)
                 }
                 Box(
                     modifier = Modifier
@@ -393,7 +396,7 @@ private fun AddPassengerSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "Add passenger",
+                        stringResource(Res.string.passenger_list_add_button),
                         color = if (name.isNotBlank()) OnAccent else Accent,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp

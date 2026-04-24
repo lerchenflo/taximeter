@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -61,7 +60,30 @@ import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDuration
 import com.lerchenflo.taximeter.utilities.formatPrice
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.taximeter_base_label
+import taximeter.composeapp.generated.resources.taximeter_default_ride_name
+import taximeter.composeapp.generated.resources.taximeter_done_button
+import taximeter.composeapp.generated.resources.taximeter_fare_label
+import taximeter.composeapp.generated.resources.taximeter_gps_error_disabled
+import taximeter.composeapp.generated.resources.taximeter_gps_error_permission
+import taximeter.composeapp.generated.resources.taximeter_gps_status_idle
+import taximeter.composeapp.generated.resources.taximeter_gps_status_lock
+import taximeter.composeapp.generated.resources.taximeter_gps_status_searching
+import taximeter.composeapp.generated.resources.taximeter_paused_label
+import taximeter.composeapp.generated.resources.taximeter_recording_label
+import taximeter.composeapp.generated.resources.taximeter_searching_label
+import taximeter.composeapp.generated.resources.taximeter_start_button_description
+import taximeter.composeapp.generated.resources.taximeter_status_active
+import taximeter.composeapp.generated.resources.taximeter_status_completed
+import taximeter.composeapp.generated.resources.taximeter_status_paused
+import taximeter.composeapp.generated.resources.taximeter_tariff_base
+import taximeter.composeapp.generated.resources.taximeter_tariff_per_km
+import taximeter.composeapp.generated.resources.taximeter_tariff_per_min_idle
+import taximeter.composeapp.generated.resources.taximeter_tariff_section
+import taximeter.composeapp.generated.resources.taximeter_timezone
 
 @Composable
 fun TaximeterRoot(
@@ -75,6 +97,8 @@ fun TaximeterRoot(
     val notifPermissionState = rememberNotificationPermissionState()
 
     var gpsErrorMessage by remember { mutableStateOf<String?>(null) }
+    val gpsErrorDisabled = stringResource(Res.string.taximeter_gps_error_disabled)
+    val gpsErrorPermission = stringResource(Res.string.taximeter_gps_error_permission)
 
     LaunchedEffect(permissionState.hasPermission) {
         viewModel.onAction(TaximeterAction.OnPermissionResult(permissionState.hasPermission))
@@ -93,8 +117,8 @@ fun TaximeterRoot(
             is TaximeterEvent.RequestLocationPermission -> permissionState.requestPermission()
             is TaximeterEvent.GpsErrorOccurred -> {
                 gpsErrorMessage = when (event.error) {
-                    GpsError.NoProvider -> "GPS disabled — enable location services"
-                    GpsError.PermissionRevoked -> "Location permission revoked"
+                    GpsError.NoProvider -> "⚠ $gpsErrorDisabled"
+                    GpsError.PermissionRevoked -> "⚠ $gpsErrorPermission"
                 }
             }
         }
@@ -152,7 +176,7 @@ fun TaximeterScreen(
                     .padding(horizontal = 18.dp, vertical = 10.dp)
             ) {
                 Text(
-                    text = "⚠ $gpsErrorMessage",
+                    text = gpsErrorMessage ?: "",
                     fontFamily = Mono,
                     fontSize = 11.sp,
                     color = Red,
@@ -180,14 +204,14 @@ fun TaximeterScreen(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (state.isRunning) "ACTIVE RIDE" else if (state.isRouteCompleted) "COMPLETED" else "PAUSED",
+                    text = if (state.isRunning) stringResource(Res.string.taximeter_status_active) else if (state.isRouteCompleted) stringResource(Res.string.taximeter_status_completed) else stringResource(Res.string.taximeter_status_paused),
                     fontFamily = Mono,
                     fontSize = 10.sp,
                     color = TextTertiary,
                     letterSpacing = 1.2.sp
                 )
                 Text(
-                    text = state.passengerName.ifBlank { "Ride" },
+                    text = state.passengerName.ifBlank { stringResource(Res.string.taximeter_default_ride_name) },
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary
@@ -196,19 +220,19 @@ fun TaximeterScreen(
             // GPS pill
             when {
                 state.gpsFixFresh -> GpsPill(
-                    label = "● GPS LOCK",
+                    label = stringResource(Res.string.taximeter_gps_status_lock),
                     textColor = Live,
                     bgColor = LiveDim,
                     borderColor = Color(0x4D7AD4A5),
                 )
                 state.gpsSearching -> GpsPill(
-                    label = "◐ SEARCHING",
+                    label = stringResource(Res.string.taximeter_gps_status_searching),
                     textColor = Accent.copy(alpha = searchingPulse),
                     bgColor = AccentDim,
                     borderColor = AccentLine.copy(alpha = 0.4f),
                 )
                 else -> GpsPill(
-                    label = "○ IDLE",
+                    label = stringResource(Res.string.taximeter_gps_status_idle),
                     textColor = TextTertiary,
                     bgColor = Color(0x0AFFFFFF),
                     borderColor = Line,
@@ -241,24 +265,24 @@ fun TaximeterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("FARE · EUR", fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.4.sp)
+                    Text(stringResource(Res.string.taximeter_fare_label), fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.4.sp)
                     when {
                         state.gpsFixFresh -> Text(
-                            text = "● RECORDING",
+                            text = stringResource(Res.string.taximeter_recording_label),
                             fontFamily = Mono,
                             fontSize = 10.sp,
                             color = Live,
                             letterSpacing = 1.4.sp
                         )
                         state.gpsSearching -> Text(
-                            text = "◐ SEARCHING",
+                            text = stringResource(Res.string.taximeter_searching_label),
                             fontFamily = Mono,
                             fontSize = 10.sp,
                             color = Accent.copy(alpha = searchingPulse),
                             letterSpacing = 1.4.sp
                         )
                         else -> Text(
-                            text = "○ PAUSED",
+                            text = stringResource(Res.string.taximeter_paused_label),
                             fontFamily = Mono,
                             fontSize = 10.sp,
                             color = TextTertiary,
@@ -324,7 +348,7 @@ fun TaximeterScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "BASE ${state.baseFare.formatPrice()}",
+                        text = "${stringResource(Res.string.taximeter_base_label)}${state.baseFare.formatPrice()}",
                         fontFamily = Mono,
                         fontSize = 10.sp,
                         color = TextTertiary,
@@ -368,13 +392,13 @@ fun TaximeterScreen(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("TARIFF A · DAY", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.2.sp)
-                    Text("CEST", fontFamily = Mono, fontSize = 11.sp, color = TextSecondary, letterSpacing = 0.5.sp)
+                    Text(stringResource(Res.string.taximeter_tariff_section), fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.2.sp)
+                    Text(stringResource(Res.string.taximeter_timezone), fontFamily = Mono, fontSize = 11.sp, color = TextSecondary, letterSpacing = 0.5.sp)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    TariffItem("Base", state.baseFare.formatPrice())
-                    TariffItem("Per km", state.pricePerKm.formatPrice())
-                    TariffItem("Per min idle", "0.35")
+                    TariffItem(stringResource(Res.string.taximeter_tariff_base), state.baseFare.formatPrice())
+                    TariffItem(stringResource(Res.string.taximeter_tariff_per_km), state.pricePerKm.formatPrice())
+                    TariffItem(stringResource(Res.string.taximeter_tariff_per_min_idle), "0.35")
                 }
             }
         }
@@ -409,7 +433,7 @@ fun TaximeterScreen(
                                 .background(OnAccent)
                         )
                     } else {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "Start", tint = OnAccent, modifier = Modifier.size(28.dp))
+                        Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.taximeter_start_button_description), tint = OnAccent, modifier = Modifier.size(28.dp))
                     }
                 }
             } else {
@@ -422,7 +446,7 @@ fun TaximeterScreen(
                         .clickable { onAction(TaximeterAction.GoBack) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Done", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(Res.string.taximeter_done_button), color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
             }
         }

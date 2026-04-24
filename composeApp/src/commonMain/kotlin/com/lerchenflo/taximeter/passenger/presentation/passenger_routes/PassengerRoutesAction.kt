@@ -6,6 +6,8 @@ sealed interface PassengerRoutesAction {
     data class UpdateRouteName(val name: String) : PassengerRoutesAction
     data object ConfirmStartRoute : PassengerRoutesAction
     data class SelectRoute(val routeId: Long) : PassengerRoutesAction
+    data class ShowDeleteConfirm(val routeId: Long) : PassengerRoutesAction
+    data object DismissDeleteConfirm : PassengerRoutesAction
     data class DeleteRoute(val routeId: Long) : PassengerRoutesAction
     data object GoBack : PassengerRoutesAction
     data object ShowRouteMap : PassengerRoutesAction

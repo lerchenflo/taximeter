@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PassengerRoutesViewModel(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val passengerRepository: PassengerRepository,
     private val routeRepository: RouteRepository
 ) : ViewModel() {
@@ -73,9 +73,18 @@ class PassengerRoutesViewModel(
                 }
             }
 
+            is PassengerRoutesAction.ShowDeleteConfirm -> {
+                _uiState.update { it.copy(routeToDeleteId = action.routeId) }
+            }
+
+            is PassengerRoutesAction.DismissDeleteConfirm -> {
+                _uiState.update { it.copy(routeToDeleteId = null) }
+            }
+
             is PassengerRoutesAction.DeleteRoute -> {
                 viewModelScope.launch {
                     routeRepository.deleteRoute(action.routeId)
+                    _uiState.update { it.copy(routeToDeleteId = null) }
                 }
             }
 

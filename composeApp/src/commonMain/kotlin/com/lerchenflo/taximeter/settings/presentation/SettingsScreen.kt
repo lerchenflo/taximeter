@@ -67,7 +67,10 @@ import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.format2f
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.*
 
 @Composable
 fun SettingsRoot(
@@ -137,8 +140,8 @@ fun SettingsScreen(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextSecondary, modifier = Modifier.size(20.dp))
             }
             Column {
-                Text("PREFERENCES", fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.2.sp)
-                Text("Settings", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, letterSpacing = (-0.3).sp)
+                Text(stringResource(Res.string.settings_preferences_label), fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.2.sp)
+                Text(stringResource(Res.string.settings_title), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, letterSpacing = (-0.3).sp)
             }
         }
 
@@ -150,30 +153,30 @@ fun SettingsScreen(
         ) {
             Spacer(Modifier.height(8.dp))
 
-            SectionLabel("Tariff")
+            SectionLabel(stringResource(Res.string.settings_tariff_section))
             SectionCard {
                 StepperRow(
-                    label = "Base fare",
-                    sub = "Charged immediately",
-                    unit = "€",
+                    label = stringResource(Res.string.settings_base_fare_label),
+                    sub = stringResource(Res.string.settings_base_fare_description),
+                    unit = stringResource(Res.string.settings_base_fare_unit),
                     value = baseFare,
                     step = 0.10,
                     onChange = { onAction(SettingsAction.UpdateBaseFare(it.toString())) }
                 )
                 CardDivider()
                 StepperRow(
-                    label = "Price per km",
-                    sub = "After first 200 m",
-                    unit = "€/km",
+                    label = stringResource(Res.string.settings_price_per_km_label),
+                    sub = stringResource(Res.string.settings_price_per_km_description),
+                    unit = stringResource(Res.string.settings_price_per_km_unit),
                     value = perKm,
                     step = 0.05,
                     onChange = { onAction(SettingsAction.UpdatePricePerKm(it.toString())) }
                 )
                 CardDivider()
                 StepperRow(
-                    label = "Idle rate",
-                    sub = "Charged when stopped",
-                    unit = "€/min",
+                    label = stringResource(Res.string.settings_idle_rate_label),
+                    sub = stringResource(Res.string.settings_idle_rate_description),
+                    unit = stringResource(Res.string.settings_idle_rate_unit),
                     value = idleRate,
                     step = 0.05,
                     onChange = { onAction(SettingsAction.UpdateIdleRate(it.toString())) }
@@ -181,7 +184,7 @@ fun SettingsScreen(
             }
 
             Spacer(Modifier.height(20.dp))
-            SectionLabel("Fare preview")
+            SectionLabel(stringResource(Res.string.settings_fare_preview_section))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -191,7 +194,7 @@ fun SettingsScreen(
                     .padding(18.dp)
             ) {
                 Column {
-                    Text("A 10 KM · 15 MIN RIDE", fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.4.sp)
+                    Text(stringResource(Res.string.settings_fare_preview_description), fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.4.sp)
                     Row(
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -212,9 +215,9 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(18.dp),
                         modifier = Modifier.padding(top = 10.dp)
                     ) {
-                        Text("${baseFare.format2f()} base", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
-                        Text("+ ${(10.0 * perKm).format2f()} dist", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
-                        Text("+ ${(15.0 * idleRate).format2f()} idle", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("${baseFare.format2f()} ${stringResource(Res.string.settings_fare_preview_base)}", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("+ ${(10.0 * perKm).format2f()} ${stringResource(Res.string.settings_fare_preview_distance)}", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("+ ${(15.0 * idleRate).format2f()} ${stringResource(Res.string.settings_fare_preview_idle)}", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
                     }
                 }
             }
@@ -224,8 +227,8 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Taximeter · v1.3.0", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.4.sp)
-                Text("local-first · no account", fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, modifier = Modifier.padding(top = 4.dp))
+                Text(stringResource(Res.string.settings_version), fontFamily = Mono, fontSize = 11.sp, color = TextTertiary, letterSpacing = 1.4.sp)
+                Text(stringResource(Res.string.settings_tagline), fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, modifier = Modifier.padding(top = 4.dp))
             }
             Spacer(Modifier.height(100.dp))
         }
@@ -253,9 +256,9 @@ fun SettingsScreen(
                 Icon(Icons.Default.Check, contentDescription = null, tint = saveText, modifier = Modifier.size(16.dp))
                 Text(
                     text = when {
-                        state.isSaved -> "Saved"
-                        dirty -> "Save changes"
-                        else -> "Up to date"
+                        state.isSaved -> stringResource(Res.string.settings_save_button_saved)
+                        dirty -> stringResource(Res.string.settings_save_button_unsaved)
+                        else -> stringResource(Res.string.settings_save_button_uptodate)
                     },
                     color = saveText,
                     fontWeight = FontWeight.SemiBold,
@@ -344,10 +347,10 @@ private fun StepperRow(
                         onChange(kotlin.math.round(parsed.coerceAtLeast(0.0) * 100) / 100.0)
                     }
                     showDialog = false
-                }) { Text("OK") }
+                }) { Text(stringResource(Res.string.settings_dialog_ok_button)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDialog = false }) { Text(stringResource(Res.string.settings_dialog_cancel_button)) }
             }
         )
         LaunchedEffect(Unit) { focusRequester.requestFocus() }

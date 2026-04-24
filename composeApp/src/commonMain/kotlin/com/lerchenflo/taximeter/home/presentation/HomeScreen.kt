@@ -52,7 +52,10 @@ import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDateTime
 import com.lerchenflo.taximeter.utilities.formatPrice
 import com.lerchenflo.taximeter.utilities.toComposeColor
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.*
 
 @Composable
 fun HomeRoot(
@@ -112,14 +115,14 @@ fun HomeScreen(
                         LogoMark()
                         Column {
                             Text(
-                                text = "Taximeter",
+                                text = stringResource(Res.string.home_app_title),
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = TextPrimary,
                                 letterSpacing = (-0.2).sp
                             )
                             Text(
-                                text = "APR 2026",
+                                text = stringResource(Res.string.home_month_year),
                                 fontFamily = Mono,
                                 fontSize = 11.sp,
                                 color = TextTertiary,
@@ -156,7 +159,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "RECENT RIDES",
+                        text = stringResource(Res.string.home_recent_rides_header),
                         fontFamily = Mono,
                         fontSize = 11.sp,
                         color = TextTertiary,
@@ -197,7 +200,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = OnAccent, modifier = Modifier.size(18.dp))
-                Text(text = "New ride", color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Text(text = stringResource(Res.string.home_new_ride_button), color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
         }
     }
