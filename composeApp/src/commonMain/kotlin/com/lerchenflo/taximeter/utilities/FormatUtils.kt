@@ -2,6 +2,22 @@ package com.lerchenflo.taximeter.utilities
 
 import kotlin.math.roundToInt
 
+fun Double.format0f(): String = roundToInt().toString()
+
+fun Double.format1f(): String {
+    val rounded = (this * 10).roundToInt()
+    val whole = rounded / 10
+    val frac = rounded % 10
+    return "$whole.$frac"
+}
+
+fun Double.format2f(): String {
+    val rounded = (this * 100).roundToInt()
+    val whole = rounded / 100
+    val frac = rounded % 100
+    return "$whole.${frac.toString().padStart(2, '0')}"
+}
+
 fun Double.formatPrice(): String {
     val rounded = (this * 100).roundToInt()
     val whole = rounded / 100

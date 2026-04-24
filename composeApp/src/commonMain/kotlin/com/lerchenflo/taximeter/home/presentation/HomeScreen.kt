@@ -48,6 +48,7 @@ import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.datasource.database.entities.RouteWithPassenger
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.currentTimeMillis
+import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDateTime
 import com.lerchenflo.taximeter.utilities.formatPrice
 import com.lerchenflo.taximeter.utilities.toComposeColor
@@ -288,7 +289,7 @@ private fun TodaySummaryCard(
                 Row {
                     Text("DIST ", fontFamily = Mono, fontSize = 12.sp, color = TextTertiary)
                     Text(
-                        text = "${"%.1f".format(totalDistKm)} km",
+                        text = "${totalDistKm.format1f()} km",
                         fontFamily = Mono,
                         fontSize = 12.sp,
                         color = TextPrimary
@@ -352,7 +353,7 @@ private fun RecentRouteItem(
                     )
                 }
                 Text(
-                    text = "${route.startTime.formatDateTime()} · ${"%.1f".format(route.totalDistanceMeters / 1000.0)} km",
+                    text = "${route.startTime.formatDateTime()} · ${(route.totalDistanceMeters / 1000.0).format1f()} km",
                     fontFamily = Mono,
                     fontSize = 11.sp,
                     color = TextTertiary,

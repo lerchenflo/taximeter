@@ -64,6 +64,7 @@ import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.utilities.ObserveEvents
+import com.lerchenflo.taximeter.utilities.format2f
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -197,7 +198,7 @@ fun SettingsScreen(
                         modifier = Modifier.padding(top = 6.dp)
                     ) {
                         Text(
-                            text = "%.2f".format(farePreview),
+                            text = farePreview.format2f(),
                             fontFamily = Mono,
                             fontSize = 44.sp,
                             fontWeight = FontWeight.Medium,
@@ -211,9 +212,9 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(18.dp),
                         modifier = Modifier.padding(top = 10.dp)
                     ) {
-                        Text("${"%.2f".format(baseFare)} base", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
-                        Text("+ ${"%.2f".format(10.0 * perKm)} dist", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
-                        Text("+ ${"%.2f".format(15.0 * idleRate)} idle", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("${baseFare.format2f()} base", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("+ ${(10.0 * perKm).format2f()} dist", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("+ ${(15.0 * idleRate).format2f()} idle", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
                     }
                 }
             }
@@ -318,8 +319,8 @@ private fun StepperRow(
     val currentOnChange by rememberUpdatedState(onChange)
     val scope = rememberCoroutineScope()
 
-    val stepUp: () -> Double = { kotlin.math.round((currentValue + currentStep) * 100).toDouble() / 100.0 }
-    val stepDown: () -> Double = { kotlin.math.round((currentValue - currentStep).coerceAtLeast(0.0) * 100).toDouble() / 100.0 }
+    val stepUp: () -> Double = { kotlin.math.round((currentValue + currentStep) * 100) / 100.0 }
+    val stepDown: () -> Double = { kotlin.math.round((currentValue - currentStep).coerceAtLeast(0.0) * 100) / 100.0 }
 
     if (showDialog) {
         val focusRequester = remember { FocusRequester() }
@@ -340,7 +341,7 @@ private fun StepperRow(
                 TextButton(onClick = {
                     val parsed = dialogInput.replace(',', '.').toDoubleOrNull()
                     if (parsed != null) {
-                        onChange(kotlin.math.round(parsed.coerceAtLeast(0.0) * 100).toDouble() / 100.0)
+                        onChange(kotlin.math.round(parsed.coerceAtLeast(0.0) * 100) / 100.0)
                     }
                     showDialog = false
                 }) { Text("OK") }
@@ -396,7 +397,7 @@ private fun StepperRow(
                 .background(Bg)
                 .border(1.dp, Line, RoundedCornerShape(10.dp))
                 .clickable {
-                    dialogInput = "%.2f".format(value).replace(',', '.')
+                    dialogInput = value.format2f().replace(',', '.')
                     showDialog = true
                 }
                 .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -404,7 +405,7 @@ private fun StepperRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = "%.2f".format(value),
+                text = value.format2f(),
                 fontFamily = Mono,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,

@@ -47,6 +47,7 @@ import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.utilities.ObserveEvents
+import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDuration
 import com.lerchenflo.taximeter.utilities.formatPrice
 import org.koin.compose.viewmodel.koinViewModel
@@ -253,7 +254,7 @@ fun TaximeterScreen(
                         letterSpacing = 0.5.sp
                     )
                     Text(
-                        text = "+ ${(price - state.baseFare).coerceAtLeast(0.0).formatPrice()} · ${"%.1f".format(distKm)}km",
+                        text = "+ ${(price - state.baseFare).coerceAtLeast(0.0).formatPrice()} · ${distKm.format1f()}km",
                         fontFamily = Mono,
                         fontSize = 10.sp,
                         color = TextTertiary,
@@ -270,9 +271,9 @@ fun TaximeterScreen(
                 .padding(horizontal = 22.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            StatCard("Distance", "${"%.1f".format(distKm)}", "km", Modifier.weight(1f))
+            StatCard("Distance", distKm.format1f(), "km", Modifier.weight(1f))
             StatCard("Duration", state.durationSeconds.formatDuration(), "min", Modifier.weight(1f))
-            StatCard("Avg", "${"%.1f".format(avgKmh)}", "km/h", Modifier.weight(1f))
+            StatCard("Avg", avgKmh.format1f(), "km/h", Modifier.weight(1f))
         }
 
         // Tariff card

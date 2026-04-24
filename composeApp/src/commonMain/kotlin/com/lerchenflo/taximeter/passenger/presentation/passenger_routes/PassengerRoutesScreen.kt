@@ -54,6 +54,8 @@ import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.datasource.database.entities.Passenger
 import com.lerchenflo.taximeter.datasource.database.entities.Route
 import com.lerchenflo.taximeter.utilities.ObserveEvents
+import com.lerchenflo.taximeter.utilities.format0f
+import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDateTime
 import com.lerchenflo.taximeter.utilities.formatPrice
 import com.lerchenflo.taximeter.utilities.toComposeColor
@@ -255,8 +257,8 @@ private fun StatsStrip(rides: Int, distKm: Double, totalEur: Double, modifier: M
     ) {
         listOf(
             "RIDES" to rides.toString(),
-            "DIST" to "${"%.1f".format(distKm)} km",
-            "TOTAL" to "€ ${"%.0f".format(totalEur)}"
+            "DIST" to "${distKm.format1f()} km",
+            "TOTAL" to "€ ${totalEur.format0f()}"
         ).forEachIndexed { i, (label, value) ->
             if (i > 0) {
                 Box(modifier = Modifier.width(1.dp).height(52.dp).background(Line))
@@ -333,7 +335,7 @@ private fun RouteItem(route: Route, onClick: () -> Unit) {
                     }
                 }
                 Text(
-                    text = "${route.startTime.formatDateTime()} · ${"%.1f".format(route.totalDistanceMeters / 1000.0)} km",
+                    text = "${route.startTime.formatDateTime()} · ${(route.totalDistanceMeters / 1000.0).format1f()} km",
                     fontFamily = Mono,
                     fontSize = 11.sp,
                     color = TextTertiary,
