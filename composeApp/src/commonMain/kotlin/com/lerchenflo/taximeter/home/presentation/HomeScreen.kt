@@ -1,5 +1,7 @@
 package com.lerchenflo.taximeter.home.presentation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,35 +12,45 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lerchenflo.taximeter.app.theme.Accent
+import com.lerchenflo.taximeter.app.theme.AccentDim
+import com.lerchenflo.taximeter.app.theme.Bg
+import com.lerchenflo.taximeter.app.theme.Line
+import com.lerchenflo.taximeter.app.theme.Mono
+import com.lerchenflo.taximeter.app.theme.OnAccent
+import com.lerchenflo.taximeter.app.theme.Surface
+import com.lerchenflo.taximeter.app.theme.TextPrimary
+import com.lerchenflo.taximeter.app.theme.TextSecondary
+import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.datasource.database.entities.RouteWithPassenger
 import com.lerchenflo.taximeter.utilities.ObserveEvents
+import com.lerchenflo.taximeter.utilities.currentTimeMillis
 import com.lerchenflo.taximeter.utilities.formatDateTime
-import com.lerchenflo.taximeter.utilities.formatDistance
 import com.lerchenflo.taximeter.utilities.formatPrice
+import com.lerchenflo.taximeter.utilities.toComposeColor
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -66,143 +78,313 @@ fun HomeRoot(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeState,
     onAction: (HomeAction) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Taximeter") },
-                actions = {
-                    IconButton(onClick = { onAction(HomeAction.ShowAllRoutesMap) }) {
-                        Icon(Icons.Default.Map, contentDescription = "Show all routes on map")
+    val todayCutoff = currentTimeMillis() - 24 * 60 * 60 * 1000L
+    val todayRoutes = state.recentRoutes.filter { it.route.startTime >= todayCutoff }
+    val totalEarnings = todayRoutes.sumOf { it.route.totalPrice }
+    val totalDistKm = todayRoutes.sumOf { it.route.totalDistanceMeters } / 1000.0
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Bg)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 22.dp, end = 14.dp, top = 18.dp, bottom = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        LogoMark()
+                        Column {
+                            Text(
+                                text = "Taximeter",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary,
+                                letterSpacing = (-0.2).sp
+                            )
+                            Text(
+                                text = "APR 2026",
+                                fontFamily = Mono,
+                                fontSize = 11.sp,
+                                color = TextTertiary,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
                     }
-                    IconButton(onClick = { onAction(HomeAction.OpenSettings) }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    Row {
+                        IconButton(onClick = { onAction(HomeAction.ShowAllRoutesMap) }) {
+                            Icon(Icons.Default.Map, contentDescription = "Map", tint = TextSecondary)
+                        }
+                        IconButton(onClick = { onAction(HomeAction.OpenSettings) }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = TextSecondary)
+                        }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                }
+            }
+
+            item {
+                TodaySummaryCard(
+                    rideCount = todayRoutes.size,
+                    totalEarnings = totalEarnings,
+                    totalDistKm = totalDistKm,
+                    modifier = Modifier.padding(horizontal = 22.dp).padding(bottom = 18.dp)
                 )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAction(HomeAction.OpenCustomerPicker) }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "New ride")
             }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 22.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "RECENT RIDES",
+                        fontFamily = Mono,
+                        fontSize = 11.sp,
+                        color = TextTertiary,
+                        letterSpacing = 1.4.sp
+                    )
+                    Text(
+                        text = "${state.recentRoutes.size}",
+                        fontFamily = Mono,
+                        fontSize = 11.sp,
+                        color = TextTertiary,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+            }
+
+            items(state.recentRoutes, key = { it.route.id }) { rp ->
+                RecentRouteItem(
+                    routeWithPassenger = rp,
+                    onClick = { onAction(HomeAction.SelectRecentRoute(rp.route.id)) }
+                )
+            }
+
+            item { Spacer(Modifier.height(100.dp)) }
         }
-    ) { innerPadding ->
-        if (state.recentRoutes.isEmpty() && !state.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
+
+        // FAB
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 22.dp, bottom = 44.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(Accent)
+                .clickable { onAction(HomeAction.OpenCustomerPicker) }
+                .padding(horizontal = 20.dp, vertical = 14.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        "No rides yet",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        "Tap + to start a new ride",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item { Spacer(Modifier.height(8.dp)) }
-                items(state.recentRoutes, key = { it.route.id }) { routeWithPassenger ->
-                    RecentRouteCard(
-                        routeWithPassenger = routeWithPassenger,
-                        onClick = { onAction(HomeAction.SelectRecentRoute(routeWithPassenger.route.id)) }
-                    )
-                }
-                item { Spacer(Modifier.height(80.dp)) }
+                Icon(Icons.Default.Add, contentDescription = null, tint = OnAccent, modifier = Modifier.size(18.dp))
+                Text(text = "New ride", color = OnAccent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
         }
     }
 }
 
 @Composable
-private fun RecentRouteCard(
-    routeWithPassenger: RouteWithPassenger,
-    onClick: () -> Unit
-) {
-    val route = routeWithPassenger.route
-    Card(
+private fun LogoMark() {
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .size(34.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Accent),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
+        Text(
+            text = "⊟",
+            fontFamily = Mono,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = OnAccent
+        )
+    }
+}
+
+@Composable
+private fun TodaySummaryCard(
+    rideCount: Int,
+    totalEarnings: Double,
+    totalDistKm: Double,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .border(1.dp, Line, RoundedCornerShape(18.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(Surface, Color(0xFF1C1916)),
+                    start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                )
+            )
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
+                .align(Alignment.TopEnd)
+                .size(140.dp)
+                .background(
+                    Brush.radialGradient(
+                        listOf(AccentDim, Color.Transparent)
+                    )
+                )
+        )
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(
+                text = "Today · $rideCount rides",
+                fontFamily = Mono,
+                fontSize = 10.sp,
+                color = TextTertiary,
+                letterSpacing = 1.4.sp
+            )
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 6.dp)
             ) {
                 Text(
-                    text = routeWithPassenger.passengerName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    text = totalEarnings.formatPrice(),
+                    fontFamily = Mono,
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary,
+                    letterSpacing = (-1.5).sp,
+                    lineHeight = 44.sp
                 )
-                if (route.isActive) {
+                Text(
+                    text = "EUR",
+                    fontFamily = Mono,
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(18.dp),
+                modifier = Modifier.padding(top = 10.dp)
+            ) {
+                Row {
+                    Text("DIST ", fontFamily = Mono, fontSize = 12.sp, color = TextTertiary)
                     Text(
-                        text = "Active",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    Text(
-                        text = route.startTime.formatDateTime(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "${"%.1f".format(totalDistKm)} km",
+                        fontFamily = Mono,
+                        fontSize = 12.sp,
+                        color = TextPrimary
                     )
                 }
-            }
-            if (route.name.isNotBlank()) {
-                Text(
-                    text = route.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = route.totalDistanceMeters.formatDistance(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "${route.totalPrice.formatPrice()} EUR",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
             }
         }
     }
 }
+
+@Composable
+private fun RecentRouteItem(
+    routeWithPassenger: RouteWithPassenger,
+    onClick: () -> Unit
+) {
+    val route = routeWithPassenger.route
+    val passengerColor = routeWithPassenger.passengerColor.toComposeColor()
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(start = 22.dp, end = 22.dp, top = 14.dp, bottom = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(passengerColor)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = routeWithPassenger.passengerName,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary
+                    )
+                }
+                if (route.name.isNotBlank()) {
+                    Text(
+                        text = route.name,
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(top = 3.dp),
+                        maxLines = 1
+                    )
+                } else {
+                    Text(
+                        text = "—",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(top = 3.dp)
+                    )
+                }
+                Text(
+                    text = "${route.startTime.formatDateTime()} · ${"%.1f".format(route.totalDistanceMeters / 1000.0)} km",
+                    fontFamily = Mono,
+                    fontSize = 11.sp,
+                    color = TextTertiary,
+                    letterSpacing = 0.3.sp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = route.totalPrice.formatPrice(),
+                    fontFamily = Mono,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary,
+                    letterSpacing = (-0.3).sp
+                )
+                Text(
+                    text = "EUR",
+                    fontFamily = Mono,
+                    fontSize = 10.sp,
+                    color = TextTertiary,
+                    letterSpacing = 0.5.sp
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .padding(start = 22.dp, end = 22.dp)
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Line)
+        )
+    }
+}
+

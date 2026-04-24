@@ -13,11 +13,11 @@ class PassengerRepository(
 
     suspend fun getPassengerById(id: Long): Passenger? = passengerDao.getById(id)
 
-    suspend fun addPassenger(name: String): Long {
+    suspend fun addPassenger(name: String, color: Long? = null): Long {
         val passenger = Passenger(
             name = name,
             createdAt = currentTimeMillis(),
-            color = generateRandomColor()
+            color = color ?: generateRandomColor()
         )
         return passengerDao.insert(passenger)
     }

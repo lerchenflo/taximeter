@@ -45,7 +45,7 @@ interface RouteDao {
     @Query("SELECT * FROM routes WHERE isActive = 0 ORDER BY startTime DESC")
     fun getAll(): Flow<List<Route>>
 
-    @Query("SELECT r.*, p.name AS passengerName FROM routes r JOIN passengers p ON r.passengerId = p.id WHERE r.isActive = 0 ORDER BY r.startTime DESC")
+    @Query("SELECT r.*, p.name AS passengerName, p.color AS passengerColor FROM routes r JOIN passengers p ON r.passengerId = p.id WHERE r.isActive = 0 ORDER BY r.startTime DESC")
     fun getAllWithPassengerName(): Flow<List<RouteWithPassenger>>
 
     @Query("DELETE FROM routes WHERE id = :routeId")

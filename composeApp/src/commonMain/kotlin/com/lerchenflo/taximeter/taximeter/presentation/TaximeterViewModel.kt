@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
+import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
 import com.lerchenflo.taximeter.taximeter.domain.TrackingServiceController
 import com.lerchenflo.taximeter.taximeter.domain.TrackingStateHolder
@@ -19,9 +20,10 @@ import kotlinx.coroutines.launch
 class TaximeterViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val routeRepository: RouteRepository,
+    private val passengerRepository: PassengerRepository,
     private val trackingServiceController: TrackingServiceController,
     private val trackingStateHolder: TrackingStateHolder,
-    private val preferencemanager: Preferencemanager
+    private val preferencemanager: Preferencemanager,
 ) : ViewModel() {
 
     private val passengerId: Long = savedStateHandle.get<Long>("passengerId") ?: -1L
@@ -56,11 +58,7 @@ class TaximeterViewModel(
             val baseFare = preferencemanager.getBaseFare()
             val pricePerKm = preferencemanager.getPricePerKm()
             _state.update {
-                it.copy(
-                    baseFare = baseFare,
-                    pricePerKm = pricePerKm,
-                    currentPrice = baseFare
-                )
+                it.copy(baseFare = baseFare, pricePerKm = pricePerKm, currentPrice = baseFare)
             }
 
             if (routeId != -1L) {
@@ -78,6 +76,10 @@ class TaximeterViewModel(
                     }
                 }
             }
+
+            // Fetch passenger name after route state is established
+            val passengerName = passengerRepository.getPassengerById(passengerId)?.name ?: ""
+            _state.update { it.copy(passengerName = passengerName) }
         }
     }
 
@@ -86,6 +88,7 @@ class TaximeterViewModel(
             is TaximeterAction.ToggleRunning -> {
                 if (_state.value.isRouteCompleted) return
                 if (!_state.value.hasLocationPermission) {
+                    _state.update { it.copy(pendingStart = true) }
                     viewModelScope.launch {
                         _events.send(TaximeterEvent.RequestLocationPermission)
                     }
@@ -102,7 +105,8 @@ class TaximeterViewModel(
 
             is TaximeterAction.OnPermissionResult -> {
                 _state.update { it.copy(hasLocationPermission = action.granted) }
-                if (action.granted && !trackingStateHolder.state.value.isRunning && !_state.value.isRouteCompleted) {
+                if (action.granted && _state.value.pendingStart && !trackingStateHolder.state.value.isRunning) {
+                    _state.update { it.copy(pendingStart = false) }
                     startTracking()
                 }
             }
@@ -117,13 +121,11 @@ class TaximeterViewModel(
 
     private fun startTracking() {
         if (routeId == -1L) return
-        trackingStateHolder.update { it.copy(isRunning = true, routeId = routeId) }
         trackingServiceController.startTracking(routeId)
     }
 
     private fun stopTracking() {
         trackingServiceController.stopTracking()
-        trackingStateHolder.update { it.copy(isRunning = false) }
     }
 
     private fun finishRoute() {

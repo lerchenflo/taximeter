@@ -8,5 +8,7 @@ data class TaximeterState(
     val baseFare: Double = 3.50,
     val pricePerKm: Double = 1.80,
     val hasLocationPermission: Boolean = false,
-    val isRouteCompleted: Boolean = false
+    val isRouteCompleted: Boolean = false,
+    val passengerName: String = "",
+    val pendingStart: Boolean = false,
 )

@@ -48,6 +48,18 @@ class SettingsViewModel(
                 _state.update { it.copy(pricePerKm = action.value, isSaved = false) }
             }
 
+            is SettingsAction.ToggleBgGps -> {
+                _state.update { it.copy(bgGps = !it.bgGps, isSaved = false) }
+            }
+
+            is SettingsAction.ToggleSpeedColor -> {
+                _state.update { it.copy(speedColor = !it.speedColor, isSaved = false) }
+            }
+
+            is SettingsAction.ToggleNotifMeter -> {
+                _state.update { it.copy(notifMeter = !it.notifMeter, isSaved = false) }
+            }
+
             is SettingsAction.Save -> {
                 val baseFare = _state.value.baseFare.toDoubleOrNull() ?: return
                 val pricePerKm = _state.value.pricePerKm.toDoubleOrNull() ?: return

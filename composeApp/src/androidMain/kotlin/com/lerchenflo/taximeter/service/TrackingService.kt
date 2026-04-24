@@ -59,6 +59,9 @@ class TrackingService : Service(), KoinComponent {
             startForeground(NOTIFICATION_ID, buildNotification())
         }
 
+        startTimeMillis = currentTimeMillis()
+        trackingStateHolder.update { it.copy(isRunning = true, routeId = routeId) }
+
         scope.launch {
             baseFare = preferencemanager.getBaseFare()
             pricePerKm = preferencemanager.getPricePerKm()
@@ -66,12 +69,8 @@ class TrackingService : Service(), KoinComponent {
             val existingRoute = routeRepository.getRouteById(routeId)
             totalDistance = existingRoute?.totalDistanceMeters ?: 0.0
 
-            startTimeMillis = currentTimeMillis()
-
             trackingStateHolder.update {
                 it.copy(
-                    isRunning = true,
-                    routeId = routeId,
                     distanceMeters = totalDistance,
                     currentPrice = baseFare + (totalDistance / 1000.0) * pricePerKm
                 )
@@ -117,12 +116,12 @@ class TrackingService : Service(), KoinComponent {
                         lastLon = point.longitude
                     }
                 } catch (_: Exception) {
-                    trackingStateHolder.update { it.copy(isRunning = false) }
+                    // transient GPS failure — keep service running, distance just won't advance
                 }
             }
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {

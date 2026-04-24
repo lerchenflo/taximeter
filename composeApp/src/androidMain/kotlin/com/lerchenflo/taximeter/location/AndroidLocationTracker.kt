@@ -44,13 +44,13 @@ class AndroidLocationTracker(
         val provider = when {
             manager.isProviderEnabled(LocationManager.GPS_PROVIDER) -> LocationManager.GPS_PROVIDER
             manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) -> LocationManager.NETWORK_PROVIDER
-            else -> null
+            else -> LocationManager.GPS_PROVIDER
         }
 
-        if (provider != null) {
+        try {
             manager.requestLocationUpdates(provider, 2000L, 5f, listener)
-        } else {
-            close(IllegalStateException("No location provider available"))
+        } catch (_: Exception) {
+            // provider momentarily unavailable — keep flow alive, caller retries on stop/start
         }
 
         awaitClose {

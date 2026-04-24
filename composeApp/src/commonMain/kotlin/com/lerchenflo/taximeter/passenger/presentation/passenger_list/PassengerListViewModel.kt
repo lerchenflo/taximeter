@@ -43,14 +43,20 @@ class PassengerListViewModel(
                 _uiState.value = _uiState.value.copy(newPassengerName = action.name)
             }
 
+            is PassengerListAction.UpdateNewPassengerColor -> {
+                _uiState.value = _uiState.value.copy(newPassengerColor = action.color)
+            }
+
             is PassengerListAction.AddPassenger -> {
                 val name = _uiState.value.newPassengerName.trim()
                 if (name.isBlank()) return
+                val color = _uiState.value.newPassengerColor
                 viewModelScope.launch {
-                    passengerRepository.addPassenger(name)
+                    passengerRepository.addPassenger(name, color)
                     _uiState.value = _uiState.value.copy(
                         isAddDialogVisible = false,
-                        newPassengerName = ""
+                        newPassengerName = "",
+                        newPassengerColor = 0xFFF0A24BL,
                     )
                 }
             }
