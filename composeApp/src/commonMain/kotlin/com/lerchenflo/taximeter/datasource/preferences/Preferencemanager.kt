@@ -17,11 +17,13 @@ class Preferencemanager(
         val USE_SOUNDS = booleanPreferencesKey("use_sounds")
         val BASE_FARE = stringPreferencesKey("base_fare")
         val PRICE_PER_KM = stringPreferencesKey("price_per_km")
+        val IDLE_RATE = stringPreferencesKey("idle_rate")
     }
 
     companion object {
         const val DEFAULT_BASE_FARE = 3.50
         const val DEFAULT_PRICE_PER_KM = 1.80
+        const val DEFAULT_IDLE_RATE = 0.35
     }
 
     suspend fun clearAll() {
@@ -62,5 +64,13 @@ class Preferencemanager(
 
     suspend fun getPricePerKm(): Double {
         return prefs.data.first()[PrefsKeys.PRICE_PER_KM]?.toDoubleOrNull() ?: DEFAULT_PRICE_PER_KM
+    }
+
+    suspend fun saveIdleRate(value: Double) {
+        prefs.edit { it[PrefsKeys.IDLE_RATE] = value.toString() }
+    }
+
+    suspend fun getIdleRate(): Double {
+        return prefs.data.first()[PrefsKeys.IDLE_RATE]?.toDoubleOrNull() ?: DEFAULT_IDLE_RATE
     }
 }

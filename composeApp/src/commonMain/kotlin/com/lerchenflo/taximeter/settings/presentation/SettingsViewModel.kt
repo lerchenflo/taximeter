@@ -24,10 +24,12 @@ class SettingsViewModel(
         viewModelScope.launch {
             val baseFare = preferencemanager.getBaseFare()
             val pricePerKm = preferencemanager.getPricePerKm()
+            val idleRate = preferencemanager.getIdleRate()
             _state.update {
                 it.copy(
                     baseFare = formatDouble(baseFare),
-                    pricePerKm = formatDouble(pricePerKm)
+                    pricePerKm = formatDouble(pricePerKm),
+                    idleRate = formatDouble(idleRate)
                 )
             }
         }
@@ -48,24 +50,18 @@ class SettingsViewModel(
                 _state.update { it.copy(pricePerKm = action.value, isSaved = false) }
             }
 
-            is SettingsAction.ToggleBgGps -> {
-                _state.update { it.copy(bgGps = !it.bgGps, isSaved = false) }
-            }
-
-            is SettingsAction.ToggleSpeedColor -> {
-                _state.update { it.copy(speedColor = !it.speedColor, isSaved = false) }
-            }
-
-            is SettingsAction.ToggleNotifMeter -> {
-                _state.update { it.copy(notifMeter = !it.notifMeter, isSaved = false) }
+            is SettingsAction.UpdateIdleRate -> {
+                _state.update { it.copy(idleRate = action.value, isSaved = false) }
             }
 
             is SettingsAction.Save -> {
                 val baseFare = _state.value.baseFare.toDoubleOrNull() ?: return
                 val pricePerKm = _state.value.pricePerKm.toDoubleOrNull() ?: return
+                val idleRate = _state.value.idleRate.toDoubleOrNull() ?: return
                 viewModelScope.launch {
                     preferencemanager.saveBaseFare(baseFare)
                     preferencemanager.savePricePerKm(pricePerKm)
+                    preferencemanager.saveIdleRate(idleRate)
                     _state.update { it.copy(isSaved = true) }
                 }
             }

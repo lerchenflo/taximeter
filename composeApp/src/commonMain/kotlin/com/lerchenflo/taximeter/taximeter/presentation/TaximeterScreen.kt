@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -305,34 +304,13 @@ fun TaximeterScreen(
         Spacer(Modifier.weight(1f))
 
         // Bottom controls
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 22.dp, vertical = 14.dp)
                 .padding(bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            contentAlignment = Alignment.Center
         ) {
-            // Live map button
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .border(1.dp, Line, RoundedCornerShape(14.dp))
-                    .clickable { /* navigate to map */ },
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(Icons.Default.Map, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(16.dp))
-                    Text("Live map", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                }
-            }
-
-            // Play/Stop circular button
             if (!state.isRouteCompleted) {
                 Box(
                     modifier = Modifier
@@ -368,18 +346,6 @@ fun TaximeterScreen(
                 ) {
                     Text("Done", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
-            }
-
-            // Note button
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .border(1.dp, Line, RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Note", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
         }
 

@@ -5,6 +5,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,38 +20,52 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lerchenflo.taximeter.app.theme.Accent
-import com.lerchenflo.taximeter.app.theme.AccentDim
 import com.lerchenflo.taximeter.app.theme.AccentLine
 import com.lerchenflo.taximeter.app.theme.Bg
 import com.lerchenflo.taximeter.app.theme.Line
 import com.lerchenflo.taximeter.app.theme.Live
 import com.lerchenflo.taximeter.app.theme.Mono
+
 import com.lerchenflo.taximeter.app.theme.OnAccent
 import com.lerchenflo.taximeter.app.theme.Surface
-import com.lerchenflo.taximeter.app.theme.Surface2
 import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
 import com.lerchenflo.taximeter.utilities.ObserveEvents
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -74,7 +91,8 @@ fun SettingsScreen(
 ) {
     val baseFare = state.baseFare.toDoubleOrNull() ?: 3.50
     val perKm = state.pricePerKm.toDoubleOrNull() ?: 1.80
-    val farePreview = baseFare + 10.0 * perKm
+    val idleRate = state.idleRate.toDoubleOrNull() ?: 0.35
+    val farePreview = baseFare + 10.0 * perKm + 15.0 * idleRate
     val dirty = !state.isSaved
 
     val saveBg by animateColorAsState(
@@ -151,7 +169,14 @@ fun SettingsScreen(
                     onChange = { onAction(SettingsAction.UpdatePricePerKm(it.toString())) }
                 )
                 CardDivider()
-                ReadonlyRow(label = "Idle rate", sub = "Charged when stopped", value = "0.35", unit = "€/min")
+                StepperRow(
+                    label = "Idle rate",
+                    sub = "Charged when stopped",
+                    unit = "€/min",
+                    value = idleRate,
+                    step = 0.05,
+                    onChange = { onAction(SettingsAction.UpdateIdleRate(it.toString())) }
+                )
             }
 
             Spacer(Modifier.height(20.dp))
@@ -188,33 +213,9 @@ fun SettingsScreen(
                     ) {
                         Text("${"%.2f".format(baseFare)} base", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
                         Text("+ ${"%.2f".format(10.0 * perKm)} dist", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
-                        Text("+ 0.00 idle", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
+                        Text("+ ${"%.2f".format(15.0 * idleRate)} idle", fontFamily = Mono, fontSize = 11.sp, color = TextTertiary)
                     }
                 }
-            }
-
-            Spacer(Modifier.height(20.dp))
-            SectionLabel("Tracking")
-            SectionCard {
-                ToggleRow("Background GPS", "Keep meter running when app is minimised", state.bgGps) {
-                    onAction(SettingsAction.ToggleBgGps)
-                }
-                CardDivider()
-                ToggleRow("Speed coloring", "Route polyline colored by speed", state.speedColor) {
-                    onAction(SettingsAction.ToggleSpeedColor)
-                }
-                CardDivider()
-                ToggleRow("Notification meter", "Show live fare in status bar", state.notifMeter) {
-                    onAction(SettingsAction.ToggleNotifMeter)
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-            SectionLabel("Appearance")
-            SectionCard {
-                SegmentedRow("Theme", listOf("Light", "Dark", "Auto"), 1)
-                CardDivider()
-                SegmentedRow("Units", listOf("Metric", "Imperial"), 0)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -310,6 +311,47 @@ private fun StepperRow(
     step: Double,
     onChange: (Double) -> Unit,
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogInput by remember { mutableStateOf("") }
+    val currentValue by rememberUpdatedState(value)
+    val currentStep by rememberUpdatedState(step)
+    val currentOnChange by rememberUpdatedState(onChange)
+    val scope = rememberCoroutineScope()
+
+    val stepUp: () -> Double = { kotlin.math.round((currentValue + currentStep) * 100).toDouble() / 100.0 }
+    val stepDown: () -> Double = { kotlin.math.round((currentValue - currentStep).coerceAtLeast(0.0) * 100).toDouble() / 100.0 }
+
+    if (showDialog) {
+        val focusRequester = remember { FocusRequester() }
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(label, fontWeight = FontWeight.SemiBold) },
+            text = {
+                OutlinedTextField(
+                    value = dialogInput,
+                    onValueChange = { dialogInput = it },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    suffix = { Text(unit, fontFamily = Mono, fontSize = 12.sp) },
+                    modifier = Modifier.focusRequester(focusRequester)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val parsed = dialogInput.replace(',', '.').toDoubleOrNull()
+                    if (parsed != null) {
+                        onChange(kotlin.math.round(parsed.coerceAtLeast(0.0) * 100).toDouble() / 100.0)
+                    }
+                    showDialog = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) { Text("Cancel") }
+            }
+        )
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -320,25 +362,43 @@ private fun StepperRow(
             Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Text(sub, fontSize = 11.sp, color = TextTertiary, modifier = Modifier.padding(top = 2.dp))
         }
-        // Minus
+        // Minus - hold to repeat
         Box(
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Bg)
                 .border(1.dp, Line, RoundedCornerShape(8.dp))
-                .clickable { onChange((value - step).coerceAtLeast(0.0).let { "%.2f".format(it).toDouble() }) },
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown().also { it.consume() }
+                        val job = scope.launch {
+                            currentOnChange(stepDown())
+                            delay(400)
+                            while (true) {
+                                currentOnChange(stepDown())
+                                delay(80)
+                            }
+                        }
+                        waitForUpOrCancellation()
+                        job.cancel()
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             Text("−", fontFamily = Mono, fontSize = 16.sp, color = TextSecondary)
         }
         Spacer(Modifier.width(6.dp))
-        // Value display
+        // Value display — tap to edit
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
                 .background(Bg)
                 .border(1.dp, Line, RoundedCornerShape(10.dp))
+                .clickable {
+                    dialogInput = "%.2f".format(value).replace(',', '.')
+                    showDialog = true
+                }
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -354,14 +414,28 @@ private fun StepperRow(
             Text(unit, fontFamily = Mono, fontSize = 9.sp, color = TextTertiary)
         }
         Spacer(Modifier.width(6.dp))
-        // Plus
+        // Plus - hold to repeat
         Box(
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Bg)
                 .border(1.dp, Line, RoundedCornerShape(8.dp))
-                .clickable { onChange("%.2f".format(value + step).toDouble()) },
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown().also { it.consume() }
+                        val job = scope.launch {
+                            currentOnChange(stepUp())
+                            delay(400)
+                            while (true) {
+                                currentOnChange(stepUp())
+                                delay(80)
+                            }
+                        }
+                        waitForUpOrCancellation()
+                        job.cancel()
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             Text("+", fontFamily = Mono, fontSize = 16.sp, color = TextSecondary)
@@ -392,79 +466,6 @@ private fun ReadonlyRow(label: String, sub: String, value: String, unit: String)
         ) {
             Text(value, fontFamily = Mono, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Text(unit, fontFamily = Mono, fontSize = 9.sp, color = TextTertiary)
-        }
-    }
-}
-
-@Composable
-private fun ToggleRow(label: String, sub: String, on: Boolean, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 12.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Text(sub, fontSize = 11.sp, color = TextTertiary, modifier = Modifier.padding(top = 2.dp))
-        }
-        Spacer(Modifier.width(14.dp))
-        Box(
-            modifier = Modifier
-                .width(42.dp)
-                .height(24.dp)
-                .clip(CircleShape)
-                .background(if (on) Accent else Color(0x1AFFFFFF))
-                .padding(2.dp),
-            contentAlignment = if (on) Alignment.CenterEnd else Alignment.CenterStart
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(if (on) OnAccent else TextSecondary)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SegmentedRow(label: String, options: List<String>, selected: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.weight(1f))
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(Bg)
-                .border(1.dp, Line, RoundedCornerShape(10.dp))
-                .padding(2.dp)
-        ) {
-            options.forEachIndexed { i, option ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .then(
-                            if (i == selected) Modifier.background(Surface2).border(1.dp, Line, RoundedCornerShape(8.dp))
-                            else Modifier
-                        )
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = option.uppercase(),
-                        fontFamily = Mono,
-                        fontSize = 11.sp,
-                        color = if (i == selected) TextPrimary else TextTertiary,
-                        letterSpacing = 0.4.sp
-                    )
-                }
-            }
         }
     }
 }
