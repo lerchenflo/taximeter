@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
+import com.lerchenflo.taximeter.taximeter.domain.GpsError
 import com.lerchenflo.taximeter.taximeter.domain.LocationTracker
 import com.lerchenflo.taximeter.taximeter.domain.TrackingStateHolder
 import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
@@ -52,6 +53,11 @@ class TrackingService : Service(), KoinComponent {
             return START_NOT_STICKY
         }
 
+        // Reset member state explicitly (new service instance each time, but be explicit)
+        lastLat = null
+        lastLon = null
+        totalDistance = 0.0
+
         createNotificationChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
@@ -60,6 +66,7 @@ class TrackingService : Service(), KoinComponent {
         }
 
         startTimeMillis = currentTimeMillis()
+        trackingStateHolder.reset()
         trackingStateHolder.update { it.copy(isRunning = true, routeId = routeId) }
 
         scope.launch {
@@ -87,6 +94,13 @@ class TrackingService : Service(), KoinComponent {
             locationJob = scope.launch {
                 try {
                     locationTracker.startTracking().collect { point ->
+                        trackingStateHolder.update {
+                            it.copy(
+                                lastFixTimestampMillis = currentTimeMillis(),
+                                hasEverHadFix = true
+                            )
+                        }
+
                         val prevLat = lastLat
                         val prevLon = lastLon
 
@@ -115,6 +129,12 @@ class TrackingService : Service(), KoinComponent {
                         lastLat = point.latitude
                         lastLon = point.longitude
                     }
+                } catch (e: SecurityException) {
+                    trackingStateHolder.update { it.copy(gpsError = GpsError.PermissionRevoked) }
+                    stopSelf()
+                } catch (e: IllegalStateException) {
+                    trackingStateHolder.update { it.copy(gpsError = GpsError.NoProvider) }
+                    stopSelf()
                 } catch (_: Exception) {
                     // transient GPS failure — keep service running, distance just won't advance
                 }
@@ -128,8 +148,7 @@ class TrackingService : Service(), KoinComponent {
         super.onDestroy()
         locationJob?.cancel()
         timerJob?.cancel()
-        locationTracker.stopTracking()
-        trackingStateHolder.update { it.copy(isRunning = false) }
+        trackingStateHolder.update { it.copy(isRunning = false, routeId = -1L) }
         scope.cancel()
     }
 

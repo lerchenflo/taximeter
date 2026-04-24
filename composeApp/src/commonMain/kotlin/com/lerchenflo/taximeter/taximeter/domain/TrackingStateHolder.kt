@@ -5,12 +5,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+enum class GpsError { NoProvider, PermissionRevoked }
+
 data class TrackingStateData(
     val isRunning: Boolean = false,
     val routeId: Long = -1L,
     val distanceMeters: Double = 0.0,
     val currentPrice: Double = 0.0,
-    val durationSeconds: Long = 0L
+    val durationSeconds: Long = 0L,
+    val lastFixTimestampMillis: Long? = null,
+    val hasEverHadFix: Boolean = false,
+    val gpsError: GpsError? = null,
 )
 
 class TrackingStateHolder {

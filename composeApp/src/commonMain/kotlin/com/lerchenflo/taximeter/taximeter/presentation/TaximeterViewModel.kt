@@ -8,10 +8,13 @@ import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
 import com.lerchenflo.taximeter.taximeter.domain.TrackingServiceController
 import com.lerchenflo.taximeter.taximeter.domain.TrackingStateHolder
+import com.lerchenflo.taximeter.utilities.currentTimeMillis
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -30,19 +33,37 @@ class TaximeterViewModel(
     private val routeId: Long = savedStateHandle.get<Long>("routeId") ?: -1L
 
     private val _state = MutableStateFlow(TaximeterState())
+
+    private val ticker = flow { while (true) { emit(Unit); delay(1000) } }
+
     val state = combine(
         _state,
-        trackingStateHolder.state
-    ) { uiState, tracking ->
+        trackingStateHolder.state,
+        ticker
+    ) { uiState, tracking, _ ->
+        if (tracking.gpsError != null) {
+            viewModelScope.launch {
+                _events.send(TaximeterEvent.GpsErrorOccurred(tracking.gpsError))
+                trackingStateHolder.update { it.copy(gpsError = null) }
+            }
+        }
+
         if (tracking.isRunning && tracking.routeId == routeId) {
+            val nowMillis = currentTimeMillis()
+            val gpsFixFresh = tracking.hasEverHadFix &&
+                (nowMillis - (tracking.lastFixTimestampMillis ?: 0L)) < 10_000L
+            val gpsSearching = !tracking.hasEverHadFix
+
             uiState.copy(
                 isRunning = true,
                 distanceMeters = tracking.distanceMeters,
                 currentPrice = tracking.currentPrice,
-                durationSeconds = tracking.durationSeconds
+                durationSeconds = tracking.durationSeconds,
+                gpsFixFresh = gpsFixFresh,
+                gpsSearching = gpsSearching,
             )
         } else {
-            uiState.copy(isRunning = false)
+            uiState.copy(isRunning = false, gpsFixFresh = false, gpsSearching = false)
         }
     }.stateIn(
         viewModelScope,
@@ -77,7 +98,6 @@ class TaximeterViewModel(
                 }
             }
 
-            // Fetch passenger name after route state is established
             val passengerName = passengerRepository.getPassengerById(passengerId)?.name ?: ""
             _state.update { it.copy(passengerName = passengerName) }
         }

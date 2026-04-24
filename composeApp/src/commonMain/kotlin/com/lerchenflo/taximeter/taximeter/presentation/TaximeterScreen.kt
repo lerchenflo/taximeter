@@ -1,5 +1,11 @@
 package com.lerchenflo.taximeter.taximeter.presentation
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lerchenflo.taximeter.app.theme.Accent
 import com.lerchenflo.taximeter.app.theme.AccentDim
+import com.lerchenflo.taximeter.app.theme.AccentLine
 import com.lerchenflo.taximeter.app.theme.Bg
 import com.lerchenflo.taximeter.app.theme.Line
 import com.lerchenflo.taximeter.app.theme.Live
@@ -46,6 +56,7 @@ import com.lerchenflo.taximeter.app.theme.Surface
 import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
+import com.lerchenflo.taximeter.taximeter.domain.GpsError
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.format1f
 import com.lerchenflo.taximeter.utilities.formatDuration
@@ -63,6 +74,8 @@ fun TaximeterRoot(
     val permissionState = rememberLocationPermissionState()
     val notifPermissionState = rememberNotificationPermissionState()
 
+    var gpsErrorMessage by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(permissionState.hasPermission) {
         viewModel.onAction(TaximeterAction.OnPermissionResult(permissionState.hasPermission))
     }
@@ -78,18 +91,31 @@ fun TaximeterRoot(
             is TaximeterEvent.RouteCompleted -> onBack()
             is TaximeterEvent.NavigateBack -> onBack()
             is TaximeterEvent.RequestLocationPermission -> permissionState.requestPermission()
+            is TaximeterEvent.GpsErrorOccurred -> {
+                gpsErrorMessage = when (event.error) {
+                    GpsError.NoProvider -> "GPS disabled — enable location services"
+                    GpsError.PermissionRevoked -> "Location permission revoked"
+                }
+            }
         }
     }
 
-    TaximeterScreen(state = state, onAction = viewModel::onAction)
+    TaximeterScreen(
+        state = state,
+        gpsErrorMessage = gpsErrorMessage,
+        onDismissError = { gpsErrorMessage = null },
+        onAction = viewModel::onAction,
+    )
 }
 
 @Composable
 fun TaximeterScreen(
     state: TaximeterState,
-    onAction: (TaximeterAction) -> Unit
+    gpsErrorMessage: String? = null,
+    onDismissError: () -> Unit = {},
+    onAction: (TaximeterAction) -> Unit,
 ) {
-    val price = if (state.isRouteCompleted) state.currentPrice else state.currentPrice
+    val price = state.currentPrice
     val priceStr = price.formatPrice()
     val parts = priceStr.split(".")
     val intPart = parts.getOrElse(0) { "0" }
@@ -100,11 +126,41 @@ fun TaximeterScreen(
         distKm / (state.durationSeconds / 3600.0)
     else 0.0
 
+    val searchingPulse by rememberInfiniteTransition(label = "gps_pulse").animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "gps_alpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Bg)
     ) {
+        // Error banner (tap to dismiss)
+        if (gpsErrorMessage != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Red.copy(alpha = 0.12f))
+                    .border(1.dp, Red.copy(alpha = 0.3f), RoundedCornerShape(0.dp))
+                    .clickable { onDismissError() }
+                    .padding(horizontal = 18.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = "⚠ $gpsErrorMessage",
+                    fontFamily = Mono,
+                    fontSize = 11.sp,
+                    color = Red,
+                    letterSpacing = 0.4.sp
+                )
+            }
+        }
+
         // Header
         Row(
             modifier = Modifier
@@ -138,19 +194,24 @@ fun TaximeterScreen(
                 )
             }
             // GPS pill
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(if (state.isRunning) LiveDim else Color(0x0AFFFFFF))
-                    .border(1.dp, if (state.isRunning) Color(0x4D7AD4A5) else Line, RoundedCornerShape(999.dp))
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-            ) {
-                Text(
-                    text = if (state.isRunning) "● GPS LOCK" else "○ IDLE",
-                    fontFamily = Mono,
-                    fontSize = 10.sp,
-                    color = if (state.isRunning) Live else TextTertiary,
-                    letterSpacing = 0.8.sp
+            when {
+                state.gpsFixFresh -> GpsPill(
+                    label = "● GPS LOCK",
+                    textColor = Live,
+                    bgColor = LiveDim,
+                    borderColor = Color(0x4D7AD4A5),
+                )
+                state.gpsSearching -> GpsPill(
+                    label = "◐ SEARCHING",
+                    textColor = Accent.copy(alpha = searchingPulse),
+                    bgColor = AccentDim,
+                    borderColor = AccentLine.copy(alpha = 0.4f),
+                )
+                else -> GpsPill(
+                    label = "○ IDLE",
+                    textColor = TextTertiary,
+                    bgColor = Color(0x0AFFFFFF),
+                    borderColor = Line,
                 )
             }
         }
@@ -181,13 +242,29 @@ fun TaximeterScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("FARE · EUR", fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 1.4.sp)
-                    Text(
-                        text = if (state.isRunning) "● RECORDING" else "○ PAUSED",
-                        fontFamily = Mono,
-                        fontSize = 10.sp,
-                        color = if (state.isRunning) Live else TextTertiary,
-                        letterSpacing = 1.4.sp
-                    )
+                    when {
+                        state.gpsFixFresh -> Text(
+                            text = "● RECORDING",
+                            fontFamily = Mono,
+                            fontSize = 10.sp,
+                            color = Live,
+                            letterSpacing = 1.4.sp
+                        )
+                        state.gpsSearching -> Text(
+                            text = "◐ SEARCHING",
+                            fontFamily = Mono,
+                            fontSize = 10.sp,
+                            color = Accent.copy(alpha = searchingPulse),
+                            letterSpacing = 1.4.sp
+                        )
+                        else -> Text(
+                            text = "○ PAUSED",
+                            fontFamily = Mono,
+                            fontSize = 10.sp,
+                            color = TextTertiary,
+                            letterSpacing = 1.4.sp
+                        )
+                    }
                 }
                 // Big price number
                 Row(
@@ -351,6 +428,30 @@ fun TaximeterScreen(
         }
 
         Spacer(Modifier.height(22.dp))
+    }
+}
+
+@Composable
+private fun GpsPill(
+    label: String,
+    textColor: Color,
+    bgColor: Color,
+    borderColor: Color,
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(bgColor)
+            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    ) {
+        Text(
+            text = label,
+            fontFamily = Mono,
+            fontSize = 10.sp,
+            color = textColor,
+            letterSpacing = 0.8.sp
+        )
     }
 }
 

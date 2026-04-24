@@ -11,4 +11,6 @@ data class TaximeterState(
     val isRouteCompleted: Boolean = false,
     val passengerName: String = "",
     val pendingStart: Boolean = false,
+    val gpsFixFresh: Boolean = false,
+    val gpsSearching: Boolean = false,
 )
