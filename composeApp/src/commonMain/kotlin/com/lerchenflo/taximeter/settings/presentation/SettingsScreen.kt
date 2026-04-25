@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -57,12 +58,13 @@ import com.lerchenflo.taximeter.app.theme.Bg
 import com.lerchenflo.taximeter.app.theme.Line
 import com.lerchenflo.taximeter.app.theme.Live
 import com.lerchenflo.taximeter.app.theme.Mono
-
 import com.lerchenflo.taximeter.app.theme.OnAccent
+import com.lerchenflo.taximeter.app.theme.Red
 import com.lerchenflo.taximeter.app.theme.Surface
 import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
+import com.lerchenflo.taximeter.settings.domain.VehicleType
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.format2f
 import kotlinx.coroutines.delay
@@ -93,9 +95,29 @@ fun SettingsScreen(
     state: SettingsState,
     onAction: (SettingsAction) -> Unit
 ) {
+    if (state.isShowingClearConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { onAction(SettingsAction.DismissClearConfirmation) },
+            title = { Text(stringResource(Res.string.settings_clear_dialog_title), fontWeight = FontWeight.SemiBold) },
+            text = { Text(stringResource(Res.string.settings_clear_dialog_body)) },
+            confirmButton = {
+                TextButton(onClick = { onAction(SettingsAction.ConfirmClearData) }) {
+                    Text(stringResource(Res.string.settings_clear_dialog_confirm), color = Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onAction(SettingsAction.DismissClearConfirmation) }) {
+                    Text(stringResource(Res.string.settings_clear_dialog_cancel))
+                }
+            }
+        )
+    }
+
     val baseFare = state.baseFare.toDoubleOrNull() ?: 3.50
     val perKm = state.pricePerKm.toDoubleOrNull() ?: 1.80
     val idleRate = state.idleRate.toDoubleOrNull() ?: 0.35
+    val gpsIntervalMs = state.gpsIntervalMs.toDoubleOrNull() ?: 2000.0
+    val gpsMinDistanceM = state.gpsMinDistanceM.toDoubleOrNull() ?: 5.0
     val farePreview = baseFare + 10.0 * perKm + 15.0 * idleRate
     val dirty = !state.isSaved
 
@@ -222,6 +244,79 @@ fun SettingsScreen(
                 }
             }
 
+            Spacer(Modifier.height(20.dp))
+            SectionLabel(stringResource(Res.string.settings_vehicle_section_title))
+            SectionCard {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = state.vehicleType == VehicleType.CAR,
+                        onClick = { onAction(SettingsAction.UpdateVehicleType(VehicleType.CAR)) },
+                        label = { Text(stringResource(Res.string.settings_vehicle_car)) }
+                    )
+                    FilterChip(
+                        selected = state.vehicleType == VehicleType.MOTORCYCLE,
+                        onClick = { onAction(SettingsAction.UpdateVehicleType(VehicleType.MOTORCYCLE)) },
+                        label = { Text(stringResource(Res.string.settings_vehicle_motorcycle)) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+            SectionLabel(stringResource(Res.string.settings_gps_section_title))
+            SectionCard {
+                StepperRow(
+                    label = stringResource(Res.string.settings_gps_interval_label),
+                    sub = stringResource(Res.string.settings_gps_interval_description),
+                    unit = stringResource(Res.string.settings_gps_interval_unit),
+                    value = gpsIntervalMs,
+                    step = 500.0,
+                    min = 500.0,
+                    onChange = { onAction(SettingsAction.UpdateGpsInterval(it.toLong().toString())) }
+                )
+                CardDivider()
+                StepperRow(
+                    label = stringResource(Res.string.settings_gps_min_distance_label),
+                    sub = stringResource(Res.string.settings_gps_min_distance_description),
+                    unit = stringResource(Res.string.settings_gps_min_distance_unit),
+                    value = gpsMinDistanceM,
+                    step = 1.0,
+                    min = 0.0,
+                    onChange = { onAction(SettingsAction.UpdateGpsMinDistance(it.toLong().toString())) }
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+            SectionLabel(stringResource(Res.string.settings_danger_section_title))
+            SectionCard {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(Res.string.settings_clear_all_button), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Red)
+                        Text(stringResource(Res.string.settings_clear_all_description), fontSize = 11.sp, color = TextTertiary, modifier = Modifier.padding(top = 2.dp))
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0x14E77271))
+                            .border(1.dp, Color(0x33E77271), RoundedCornerShape(8.dp))
+                            .clickable(enabled = !state.isClearing) { onAction(SettingsAction.ShowClearConfirmation) }
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(stringResource(Res.string.settings_clear_all_button), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Red, fontFamily = Mono)
+                    }
+                }
+            }
+
             Spacer(Modifier.height(24.dp))
             Column(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
@@ -314,6 +409,7 @@ private fun StepperRow(
     value: Double,
     step: Double,
     onChange: (Double) -> Unit,
+    min: Double = 0.0,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var dialogInput by remember { mutableStateOf("") }
@@ -323,7 +419,7 @@ private fun StepperRow(
     val scope = rememberCoroutineScope()
 
     val stepUp: () -> Double = { kotlin.math.round((currentValue + currentStep) * 100) / 100.0 }
-    val stepDown: () -> Double = { kotlin.math.round((currentValue - currentStep).coerceAtLeast(0.0) * 100) / 100.0 }
+    val stepDown: () -> Double = { kotlin.math.round((currentValue - currentStep).coerceAtLeast(min) * 100) / 100.0 }
 
     if (showDialog) {
         val focusRequester = remember { FocusRequester() }
@@ -344,7 +440,7 @@ private fun StepperRow(
                 TextButton(onClick = {
                     val parsed = dialogInput.replace(',', '.').toDoubleOrNull()
                     if (parsed != null) {
-                        onChange(kotlin.math.round(parsed.coerceAtLeast(0.0) * 100) / 100.0)
+                        onChange(kotlin.math.round(parsed.coerceAtLeast(min) * 100) / 100.0)
                     }
                     showDialog = false
                 }) { Text(stringResource(Res.string.settings_dialog_ok_button)) }

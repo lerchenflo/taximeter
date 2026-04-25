@@ -23,4 +23,6 @@ class PassengerRepository(
     }
 
     suspend fun deletePassenger(id: Long) = passengerDao.deleteById(id)
+
+    suspend fun clearAllData() = passengerDao.deleteAll()
 }

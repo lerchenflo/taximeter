@@ -76,6 +76,23 @@
     <string name="settings_save_button_uptodate">Up to date</string>
     <string name="settings_dialog_ok_button">OK</string>
     <string name="settings_dialog_cancel_button">Cancel</string>
+    <string name="settings_vehicle_section_title">Vehicle</string>
+    <string name="settings_vehicle_car">🚗 Car</string>
+    <string name="settings_vehicle_motorcycle">🏍 Motorcycle</string>
+    <string name="settings_gps_section_title">GPS Tracking</string>
+    <string name="settings_gps_interval_label">Update interval</string>
+    <string name="settings_gps_interval_description">Min time between location fixes</string>
+    <string name="settings_gps_interval_unit">ms</string>
+    <string name="settings_gps_min_distance_label">Min distance</string>
+    <string name="settings_gps_min_distance_description">Min movement before new point</string>
+    <string name="settings_gps_min_distance_unit">m</string>
+    <string name="settings_danger_section_title">Danger Zone</string>
+    <string name="settings_clear_all_button">Clear all data</string>
+    <string name="settings_clear_all_description">Wipes all passengers, routes and settings</string>
+    <string name="settings_clear_dialog_title">Delete everything?</string>
+    <string name="settings_clear_dialog_body">This permanently deletes all passengers, routes, recorded points and tariff settings. Cannot be undone.</string>
+    <string name="settings_clear_dialog_confirm">Delete all</string>
+    <string name="settings_clear_dialog_cancel">Cancel</string>
 
     <!-- Taximeter Screen -->
     <string name="taximeter_gps_error_disabled">GPS disabled — enable location services</string>

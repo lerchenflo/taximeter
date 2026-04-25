@@ -10,6 +10,6 @@ data class LocationPoint(
 )
 
 interface LocationTracker {
-    fun startTracking(): Flow<LocationPoint>
+    fun startTracking(intervalMs: Long, minDistanceMeters: Float): Flow<LocationPoint>
     fun stopTracking()
 }

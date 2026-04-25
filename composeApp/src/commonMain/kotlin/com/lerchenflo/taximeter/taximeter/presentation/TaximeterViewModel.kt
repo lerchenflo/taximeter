@@ -3,11 +3,15 @@ package com.lerchenflo.taximeter.taximeter.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lerchenflo.taximeter.datasource.database.entities.RoutePoint
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
 import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
 import com.lerchenflo.taximeter.datasource.repository.RouteRepository
+import com.lerchenflo.taximeter.routemap.presentation.RouteMapState
+import com.lerchenflo.taximeter.routemap.presentation.RoutePolyline
 import com.lerchenflo.taximeter.taximeter.domain.TrackingServiceController
 import com.lerchenflo.taximeter.taximeter.domain.TrackingStateHolder
+import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
 import com.lerchenflo.taximeter.utilities.currentTimeMillis
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -101,6 +105,45 @@ class TaximeterViewModel(
             val passengerName = passengerRepository.getPassengerById(passengerId)?.name ?: ""
             _state.update { it.copy(passengerName = passengerName) }
         }
+
+        if (routeId != -1L) {
+            viewModelScope.launch {
+                val vehicleType = preferencemanager.getVehicleType()
+                val passenger = passengerRepository.getPassengerById(passengerId)
+                val passengerColor = passenger?.color ?: 0xFFE53935L
+
+                combine(
+                    routeRepository.getRoutePoints(routeId),
+                    trackingStateHolder.state
+                ) { points, tracking -> Pair(points, tracking) }
+                    .collect { (points, tracking) ->
+                        if (tracking.isRunning && tracking.routeId == routeId && points.size >= 2) {
+                            val speeds = computeSpeedsForLiveMap(points)
+                            val polyline = RoutePolyline(
+                                routeId = routeId,
+                                passengerName = passenger?.name ?: "",
+                                latitudes = points.map { it.latitude },
+                                longitudes = points.map { it.longitude },
+                                timestamps = points.map { it.timestamp },
+                                color = passengerColor,
+                                speeds = speeds,
+                                isLive = true
+                            )
+                            _state.update {
+                                it.copy(
+                                    liveMapState = RouteMapState(
+                                        isLoading = false,
+                                        routePolylines = listOf(polyline),
+                                        vehicleType = vehicleType
+                                    )
+                                )
+                            }
+                        } else {
+                            _state.update { it.copy(liveMapState = null) }
+                        }
+                    }
+            }
+        }
     }
 
     fun onAction(action: TaximeterAction) {
@@ -169,6 +212,19 @@ class TaximeterViewModel(
             _state.update { it.copy(isRouteCompleted = true) }
             _events.send(TaximeterEvent.RouteCompleted)
         }
+    }
+
+    private fun computeSpeedsForLiveMap(points: List<RoutePoint>): List<Float> {
+        if (points.isEmpty()) return emptyList()
+        val hasStoredSpeed = points.any { it.speed > 0f }
+        if (hasStoredSpeed) return points.map { it.speed }
+        val speeds = mutableListOf(0f)
+        for (i in 1 until points.size) {
+            val dist = haversineDistance(points[i - 1].latitude, points[i - 1].longitude, points[i].latitude, points[i].longitude)
+            val timeDelta = (points[i].timestamp - points[i - 1].timestamp) / 1000.0
+            speeds.add(if (timeDelta > 0) (dist / timeDelta).toFloat() else 0f)
+        }
+        return speeds
     }
 
     override fun onCleared() {

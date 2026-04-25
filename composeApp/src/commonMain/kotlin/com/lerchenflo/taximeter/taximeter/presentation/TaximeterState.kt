@@ -1,5 +1,7 @@
 package com.lerchenflo.taximeter.taximeter.presentation
 
+import com.lerchenflo.taximeter.routemap.presentation.RouteMapState
+
 data class TaximeterState(
     val isRunning: Boolean = false,
     val currentPrice: Double = 0.0,
@@ -13,4 +15,5 @@ data class TaximeterState(
     val pendingStart: Boolean = false,
     val gpsFixFresh: Boolean = false,
     val gpsSearching: Boolean = false,
+    val liveMapState: RouteMapState? = null
 )

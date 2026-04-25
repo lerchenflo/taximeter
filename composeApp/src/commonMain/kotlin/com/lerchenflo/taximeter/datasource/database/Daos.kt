@@ -23,6 +23,9 @@ interface PassengerDao {
 
     @Query("DELETE FROM passengers WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM passengers")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -41,6 +44,9 @@ interface RouteDao {
 
     @Query("SELECT * FROM routes WHERE isActive = 1 LIMIT 1")
     suspend fun getActiveRoute(): Route?
+
+    @Query("SELECT * FROM routes WHERE isActive = 1 LIMIT 1")
+    fun getActiveRouteFlow(): Flow<Route?>
 
     @Query("SELECT * FROM routes WHERE isActive = 0 ORDER BY startTime DESC")
     fun getAll(): Flow<List<Route>>

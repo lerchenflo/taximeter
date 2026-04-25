@@ -72,6 +72,8 @@ class TrackingService : Service(), KoinComponent {
         scope.launch {
             baseFare = preferencemanager.getBaseFare()
             pricePerKm = preferencemanager.getPricePerKm()
+            val gpsIntervalMs = preferencemanager.getGpsIntervalMs()
+            val gpsMinDistanceM = preferencemanager.getGpsMinDistanceM()
 
             val existingRoute = routeRepository.getRouteById(routeId)
             totalDistance = existingRoute?.totalDistanceMeters ?: 0.0
@@ -93,7 +95,7 @@ class TrackingService : Service(), KoinComponent {
 
             locationJob = scope.launch {
                 try {
-                    locationTracker.startTracking().collect { point ->
+                    locationTracker.startTracking(gpsIntervalMs, gpsMinDistanceM).collect { point ->
                         trackingStateHolder.update {
                             it.copy(
                                 lastFixTimestampMillis = currentTimeMillis(),
