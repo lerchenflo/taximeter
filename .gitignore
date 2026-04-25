@@ -15,6 +15,7 @@ captures
 *.apk
 **/*.apk
 *.xcodeproj/*
+.windsurf/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcodeproj/project.xcworkspace/
