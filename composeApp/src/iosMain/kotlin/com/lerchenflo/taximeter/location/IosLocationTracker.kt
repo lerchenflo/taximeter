@@ -6,6 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 class IosLocationTracker : LocationTracker {
-    override fun startTracking(): Flow<LocationPoint> = emptyFlow()
+    override fun startTracking(intervalMs: Long, minDistanceMeters: Float): Flow<LocationPoint> = emptyFlow()
     override fun stopTracking() {}
 }

@@ -4,7 +4,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.lerchenflo.taximeter.settings.domain.VehicleType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -18,12 +21,17 @@ class Preferencemanager(
         val BASE_FARE = stringPreferencesKey("base_fare")
         val PRICE_PER_KM = stringPreferencesKey("price_per_km")
         val IDLE_RATE = stringPreferencesKey("idle_rate")
+        val VEHICLE_TYPE = stringPreferencesKey("vehicle_type")
+        val GPS_INTERVAL_MS = longPreferencesKey("gps_interval_ms")
+        val GPS_MIN_DISTANCE_M = floatPreferencesKey("gps_min_distance_m")
     }
 
     companion object {
         const val DEFAULT_BASE_FARE = 3.50
         const val DEFAULT_PRICE_PER_KM = 1.80
         const val DEFAULT_IDLE_RATE = 0.35
+        const val DEFAULT_GPS_INTERVAL_MS = 2000L
+        const val DEFAULT_GPS_MIN_DISTANCE_M = 5f
     }
 
     suspend fun clearAll() {
@@ -72,5 +80,42 @@ class Preferencemanager(
 
     suspend fun getIdleRate(): Double {
         return prefs.data.first()[PrefsKeys.IDLE_RATE]?.toDoubleOrNull() ?: DEFAULT_IDLE_RATE
+    }
+
+    suspend fun saveGpsIntervalMs(value: Long) {
+        prefs.edit { it[PrefsKeys.GPS_INTERVAL_MS] = value }
+    }
+
+    fun getGpsIntervalMsFlow(): Flow<Long> = prefs.data.map { prefs ->
+        prefs[PrefsKeys.GPS_INTERVAL_MS] ?: DEFAULT_GPS_INTERVAL_MS
+    }
+
+    suspend fun getGpsIntervalMs(): Long {
+        return prefs.data.first()[PrefsKeys.GPS_INTERVAL_MS] ?: DEFAULT_GPS_INTERVAL_MS
+    }
+
+    suspend fun saveGpsMinDistanceM(value: Float) {
+        prefs.edit { it[PrefsKeys.GPS_MIN_DISTANCE_M] = value }
+    }
+
+    fun getGpsMinDistanceMFlow(): Flow<Float> = prefs.data.map { prefs ->
+        prefs[PrefsKeys.GPS_MIN_DISTANCE_M] ?: DEFAULT_GPS_MIN_DISTANCE_M
+    }
+
+    suspend fun getGpsMinDistanceM(): Float {
+        return prefs.data.first()[PrefsKeys.GPS_MIN_DISTANCE_M] ?: DEFAULT_GPS_MIN_DISTANCE_M
+    }
+
+    suspend fun saveVehicleType(type: VehicleType) {
+        prefs.edit { it[PrefsKeys.VEHICLE_TYPE] = type.name }
+    }
+
+    fun getVehicleTypeFlow(): Flow<VehicleType> = prefs.data.map { prefs ->
+        prefs[PrefsKeys.VEHICLE_TYPE]?.let { runCatching { VehicleType.valueOf(it) }.getOrNull() } ?: VehicleType.CAR
+    }
+
+    suspend fun getVehicleType(): VehicleType {
+        val raw = prefs.data.first()[PrefsKeys.VEHICLE_TYPE]
+        return raw?.let { runCatching { VehicleType.valueOf(it) }.getOrNull() } ?: VehicleType.CAR
     }
 }

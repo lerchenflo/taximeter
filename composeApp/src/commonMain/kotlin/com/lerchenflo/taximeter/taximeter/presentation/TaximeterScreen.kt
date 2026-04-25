@@ -55,6 +55,7 @@ import com.lerchenflo.taximeter.app.theme.Surface
 import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
+import com.lerchenflo.taximeter.routemap.presentation.LiveTaximeterMap
 import com.lerchenflo.taximeter.taximeter.domain.GpsError
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.format1f
@@ -87,8 +88,6 @@ import taximeter.composeapp.generated.resources.taximeter_timezone
 
 @Composable
 fun TaximeterRoot(
-    passengerId: Long,
-    routeId: Long,
     onBack: () -> Unit,
     viewModel: TaximeterViewModel = koinViewModel()
 ) {
@@ -403,7 +402,26 @@ fun TaximeterScreen(
             }
         }
 
-        Spacer(Modifier.weight(1f))
+        if (state.liveMapState != null) {
+            Spacer(Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 22.dp)
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(1.dp, Line, RoundedCornerShape(14.dp))
+            ) {
+                LiveTaximeterMap(
+                    state = state.liveMapState,
+                    modifier = Modifier.fillMaxSize(),
+                    followVehicle = true
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        } else {
+            Spacer(Modifier.weight(1f))
+        }
 
         // Bottom controls
         Box(
@@ -481,6 +499,11 @@ private fun GpsPill(
 
 @Composable
 private fun StatCard(label: String, value: String, unit: String, modifier: Modifier = Modifier) {
+    val valueFontSize = when {
+        value.length > 6 -> 15.sp
+        value.length > 4 -> 18.sp
+        else -> 22.sp
+    }
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -494,7 +517,7 @@ private fun StatCard(label: String, value: String, unit: String, modifier: Modif
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             modifier = Modifier.padding(top = 4.dp)
         ) {
-            Text(value, fontFamily = Mono, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = TextPrimary, letterSpacing = (-0.8).sp)
+            Text(value, fontFamily = Mono, fontSize = valueFontSize, fontWeight = FontWeight.Medium, color = TextPrimary, letterSpacing = (-0.8).sp, maxLines = 1)
             Text(unit, fontFamily = Mono, fontSize = 10.sp, color = TextTertiary, letterSpacing = 0.5.sp, modifier = Modifier.padding(bottom = 3.dp))
         }
     }

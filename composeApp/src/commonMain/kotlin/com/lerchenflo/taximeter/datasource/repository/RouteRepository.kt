@@ -19,6 +19,8 @@ class RouteRepository(
 
     suspend fun getActiveRoute(): Route? = routeDao.getActiveRoute()
 
+    fun getActiveRouteFlow(): Flow<Route?> = routeDao.getActiveRouteFlow()
+
     suspend fun startRoute(passengerId: Long, name: String = ""): Long {
         val route = Route(
             passengerId = passengerId,

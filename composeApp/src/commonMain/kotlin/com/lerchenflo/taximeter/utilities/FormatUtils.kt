@@ -78,5 +78,13 @@ fun Long.formatDateTime(): String {
             "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 }
 
+fun Long.formatTimeOfDay(): String {
+    val totalSeconds = this / 1000
+    val hour = ((totalSeconds / 3600) % 24).toInt()
+    val minute = ((totalSeconds / 60) % 60).toInt()
+    val second = (totalSeconds % 60).toInt()
+    return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}"
+}
+
 private fun isLeapYear(year: Int): Boolean =
     (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)

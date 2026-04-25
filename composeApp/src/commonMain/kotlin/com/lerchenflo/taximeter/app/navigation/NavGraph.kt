@@ -5,7 +5,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import com.lerchenflo.taximeter.home.presentation.HomeRoot
 import com.lerchenflo.taximeter.passenger.presentation.passenger_list.PassengerListRoot
 import com.lerchenflo.taximeter.passenger.presentation.passenger_routes.PassengerRoutesRoot
@@ -49,10 +48,8 @@ fun AppNavGraph(
             )
         }
 
-        composable<PassengerRoutesRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<PassengerRoutesRoute>()
+        composable<PassengerRoutesRoute> {
             PassengerRoutesRoot(
-                passengerId = route.passengerId,
                 onRouteClick = { passengerId, routeId ->
                     navController.navigate(TaximeterRoute(passengerId, routeId))
                 },
@@ -63,19 +60,14 @@ fun AppNavGraph(
             )
         }
 
-        composable<TaximeterRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<TaximeterRoute>()
+        composable<TaximeterRoute> {
             TaximeterRoot(
-                passengerId = route.passengerId,
-                routeId = route.routeId,
                 onBack = { navController.popBackStack() }
             )
         }
 
-        composable<RouteMapRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<RouteMapRoute>()
+        composable<RouteMapRoute> {
             RouteMapRoot(
-                passengerId = route.passengerId,
                 onBack = { navController.popBackStack() }
             )
         }

@@ -20,7 +20,7 @@ class AndroidLocationTracker(
     private val context: Context
 ) : LocationTracker {
 
-    override fun startTracking(): Flow<LocationPoint> = callbackFlow {
+    override fun startTracking(intervalMs: Long, minDistanceMeters: Float): Flow<LocationPoint> = callbackFlow {
         val fineGranted = ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
@@ -63,7 +63,7 @@ class AndroidLocationTracker(
         }
 
         @SuppressLint("MissingPermission")
-        manager.requestLocationUpdates(provider, 2000L, 5f, listener, Looper.getMainLooper())
+        manager.requestLocationUpdates(provider, intervalMs, minDistanceMeters, listener, Looper.getMainLooper())
 
         awaitClose {
             manager.removeUpdates(listener)

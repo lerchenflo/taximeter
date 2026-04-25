@@ -69,7 +69,6 @@ import taximeter.composeapp.generated.resources.*
 
 @Composable
 fun PassengerRoutesRoot(
-    passengerId: Long,
     onRouteClick: (Long, Long) -> Unit,
     onShowMap: (Long) -> Unit,
     onBack: () -> Unit,
