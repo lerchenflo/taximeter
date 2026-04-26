@@ -11,11 +11,10 @@ plugins {
 kotlin {
 
     android {
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 26
         namespace = "com.lerchenflo.taximeter.androidApp"
         androidResources { enable = true }
-
     }
 
     
@@ -56,7 +55,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.material.icons.extended)
             implementation(libs.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.ui.tooling.preview)
