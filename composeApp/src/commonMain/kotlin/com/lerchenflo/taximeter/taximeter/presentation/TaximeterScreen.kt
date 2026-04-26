@@ -93,7 +93,6 @@ fun TaximeterRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val permissionState = rememberLocationPermissionState()
-    val notifPermissionState = rememberNotificationPermissionState()
 
     var gpsErrorMessage by remember { mutableStateOf<String?>(null) }
     val gpsErrorDisabled = stringResource(Res.string.taximeter_gps_error_disabled)
@@ -101,12 +100,6 @@ fun TaximeterRoot(
 
     LaunchedEffect(permissionState.hasPermission) {
         viewModel.onAction(TaximeterAction.OnPermissionResult(permissionState.hasPermission))
-    }
-
-    LaunchedEffect(Unit) {
-        if (!notifPermissionState.hasPermission) {
-            notifPermissionState.requestPermission()
-        }
     }
 
     ObserveEvents(viewModel.events) { event ->
@@ -175,7 +168,7 @@ fun TaximeterScreen(
                     .padding(horizontal = 18.dp, vertical = 10.dp)
             ) {
                 Text(
-                    text = gpsErrorMessage ?: "",
+                    text = gpsErrorMessage,
                     fontFamily = Mono,
                     fontSize = 11.sp,
                     color = Red,

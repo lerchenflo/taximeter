@@ -1,5 +1,6 @@
 package com.lerchenflo.taximeter.settings.presentation
 
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
 import com.lerchenflo.taximeter.settings.domain.VehicleType
 
 data class SettingsState(
@@ -10,6 +11,7 @@ data class SettingsState(
     val gpsMinDistanceM: String = "5",
     val isSaved: Boolean = false,
     val vehicleType: VehicleType = VehicleType.CAR,
+    val speedScale: SpeedScale = SpeedScale.MEDIUM_FAST,
     val isShowingClearConfirmDialog: Boolean = false,
     val isClearing: Boolean = false
 )

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
 import com.lerchenflo.taximeter.settings.domain.VehicleType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -22,6 +23,7 @@ class Preferencemanager(
         val PRICE_PER_KM = stringPreferencesKey("price_per_km")
         val IDLE_RATE = stringPreferencesKey("idle_rate")
         val VEHICLE_TYPE = stringPreferencesKey("vehicle_type")
+        val SPEED_SCALE = stringPreferencesKey("speed_scale")
         val GPS_INTERVAL_MS = longPreferencesKey("gps_interval_ms")
         val GPS_MIN_DISTANCE_M = floatPreferencesKey("gps_min_distance_m")
     }
@@ -104,6 +106,19 @@ class Preferencemanager(
 
     suspend fun getGpsMinDistanceM(): Float {
         return prefs.data.first()[PrefsKeys.GPS_MIN_DISTANCE_M] ?: DEFAULT_GPS_MIN_DISTANCE_M
+    }
+
+    suspend fun saveSpeedScale(scale: SpeedScale) {
+        prefs.edit { it[PrefsKeys.SPEED_SCALE] = scale.name }
+    }
+
+    fun getSpeedScaleFlow(): Flow<SpeedScale> = prefs.data.map { p ->
+        p[PrefsKeys.SPEED_SCALE]?.let { runCatching { SpeedScale.valueOf(it) }.getOrNull() } ?: SpeedScale.MEDIUM_FAST
+    }
+
+    suspend fun getSpeedScale(): SpeedScale {
+        val raw = prefs.data.first()[PrefsKeys.SPEED_SCALE]
+        return raw?.let { runCatching { SpeedScale.valueOf(it) }.getOrNull() } ?: SpeedScale.MEDIUM_FAST
     }
 
     suspend fun saveVehicleType(type: VehicleType) {

@@ -64,6 +64,7 @@ import com.lerchenflo.taximeter.app.theme.Surface
 import com.lerchenflo.taximeter.app.theme.TextPrimary
 import com.lerchenflo.taximeter.app.theme.TextSecondary
 import com.lerchenflo.taximeter.app.theme.TextTertiary
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
 import com.lerchenflo.taximeter.settings.domain.VehicleType
 import com.lerchenflo.taximeter.utilities.ObserveEvents
 import com.lerchenflo.taximeter.utilities.format2f
@@ -262,6 +263,33 @@ fun SettingsScreen(
                         selected = state.vehicleType == VehicleType.MOTORCYCLE,
                         onClick = { onAction(SettingsAction.UpdateVehicleType(VehicleType.MOTORCYCLE)) },
                         label = { Text(stringResource(Res.string.settings_vehicle_motorcycle)) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+            SectionLabel(stringResource(Res.string.settings_speed_scale_section_title))
+            SectionCard {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = state.speedScale == SpeedScale.SLOW,
+                        onClick = { onAction(SettingsAction.UpdateSpeedScale(SpeedScale.SLOW)) },
+                        label = { Text(stringResource(Res.string.settings_speed_scale_slow)) }
+                    )
+                    FilterChip(
+                        selected = state.speedScale == SpeedScale.MEDIUM_FAST,
+                        onClick = { onAction(SettingsAction.UpdateSpeedScale(SpeedScale.MEDIUM_FAST)) },
+                        label = { Text(stringResource(Res.string.settings_speed_scale_medium_fast)) }
+                    )
+                    FilterChip(
+                        selected = state.speedScale == SpeedScale.FAST,
+                        onClick = { onAction(SettingsAction.UpdateSpeedScale(SpeedScale.FAST)) },
+                        label = { Text(stringResource(Res.string.settings_speed_scale_fast)) }
                     )
                 }
             }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lerchenflo.taximeter.datasource.preferences.Preferencemanager
 import com.lerchenflo.taximeter.datasource.repository.PassengerRepository
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +29,7 @@ class SettingsViewModel(
             val pricePerKm = preferencemanager.getPricePerKm()
             val idleRate = preferencemanager.getIdleRate()
             val vehicleType = preferencemanager.getVehicleType()
+            val speedScale = preferencemanager.getSpeedScale()
             val gpsIntervalMs = preferencemanager.getGpsIntervalMs()
             val gpsMinDistanceM = preferencemanager.getGpsMinDistanceM()
             _state.update {
@@ -36,6 +38,7 @@ class SettingsViewModel(
                     pricePerKm = formatDouble(pricePerKm),
                     idleRate = formatDouble(idleRate),
                     vehicleType = vehicleType,
+                    speedScale = speedScale,
                     gpsIntervalMs = gpsIntervalMs.toString(),
                     gpsMinDistanceM = gpsMinDistanceM.toInt().toString()
                 )
@@ -102,6 +105,13 @@ class SettingsViewModel(
                 viewModelScope.launch {
                     preferencemanager.saveVehicleType(action.type)
                     _state.update { it.copy(vehicleType = action.type) }
+                }
+            }
+
+            is SettingsAction.UpdateSpeedScale -> {
+                viewModelScope.launch {
+                    preferencemanager.saveSpeedScale(action.scale)
+                    _state.update { it.copy(speedScale = action.scale) }
                 }
             }
 

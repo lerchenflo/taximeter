@@ -2,6 +2,7 @@ package com.lerchenflo.taximeter.routemap.presentation
 
 import androidx.compose.ui.unit.DpOffset
 import com.lerchenflo.taximeter.datasource.database.entities.Passenger
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
 import com.lerchenflo.taximeter.settings.domain.VehicleType
 
 data class RouteMapState(
@@ -10,6 +11,7 @@ data class RouteMapState(
     val selectedPassengerId: Long = -1L,
     val routePolylines: List<RoutePolyline> = emptyList(),
     val vehicleType: VehicleType = VehicleType.CAR,
+    val speedScale: SpeedScale = SpeedScale.MEDIUM_FAST,
     val tooltip: TooltipState? = null
 )
 
