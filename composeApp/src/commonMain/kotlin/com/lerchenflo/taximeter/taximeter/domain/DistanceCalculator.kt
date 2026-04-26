@@ -8,7 +8,10 @@ import kotlin.math.sqrt
 
 private const val EARTH_RADIUS_METERS = 6_371_000.0
 
-private fun Double.toRadians(): Double = this * PI / 180.0
+fun Double.toRadians(): Double = this * PI / 180.0
+
+fun Double.toDegrees(): Double = this * 180.0 / PI
+
 
 fun haversineDistance(
     lat1: Double, lon1: Double,

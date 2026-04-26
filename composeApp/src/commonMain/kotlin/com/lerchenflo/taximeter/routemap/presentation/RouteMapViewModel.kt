@@ -43,9 +43,10 @@ class RouteMapViewModel(
     val state = combine(
         _uiState,
         passengerRepository.getAllPassengers(),
-        preferencemanager.getVehicleTypeFlow()
-    ) { uiState, passengers, vehicleType ->
-        uiState.copy(passengers = passengers, vehicleType = vehicleType)
+        preferencemanager.getVehicleTypeFlow(),
+        preferencemanager.getSpeedScaleFlow()
+    ) { uiState, passengers, vehicleType, speedScale ->
+        uiState.copy(passengers = passengers, vehicleType = vehicleType, speedScale = speedScale)
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -61,7 +62,7 @@ class RouteMapViewModel(
     fun onAction(action: RouteMapAction) {
         when (action) {
             is RouteMapAction.SelectPassenger -> {
-                _uiState.update { it.copy(selectedPassengerId = action.passengerId) }
+                _uiState.update { it.copy(selectedPassengerId = action.passengerId, tooltip = null) }
                 loadRoutes(action.passengerId)
             }
             is RouteMapAction.GoBack -> {
@@ -75,6 +76,7 @@ class RouteMapViewModel(
             }
 
             is RouteMapAction.LineClicked -> {
+                _uiState.update { it.copy(tooltip = null) }
                 val polyline = _uiState.value.routePolylines.find { it.routeId == action.routeId }
                     ?: return
                 val nearestIdx = polyline.latitudes.indices.minByOrNull { i ->

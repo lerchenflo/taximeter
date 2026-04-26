@@ -8,7 +8,7 @@
     <string name="passenger_routes_start_ride_button">Start ride</string>
 
     <!-- Passenger Header -->
-    <string name="passenger_header_rides_total">PASSENGER · %d RIDES TOTAL</string>
+    <string name="passenger_header_rides_total">PASSENGER · %1$d RIDES TOTAL</string>
 
     <!-- Stats Strip -->
     <string name="stats_label_rides">RIDES</string>
@@ -37,9 +37,9 @@
     <!-- Passenger List Screen -->
     <string name="passenger_list_step_indicator">STEP 1 OF 2</string>
     <string name="passenger_list_title">Select passenger</string>
-    <string name="passenger_list_search_placeholder">Search %d passengers…</string>
-    <string name="passenger_list_result_count">%d result%s · A–Z</string>
-    <string name="passenger_list_no_results">No passengers match "%s"</string>
+    <string name="passenger_list_search_placeholder">Search %1$d passengers…</string>
+    <string name="passenger_list_result_count">%1$d result%2$s · A–Z</string>
+    <string name="passenger_list_no_results">No passengers match "%1$s"</string>
     <string name="passenger_list_add_button_description">Add passenger</string>
     <string name="passenger_list_sheet_header">NEW PASSENGER</string>
     <string name="passenger_list_sheet_title">Add a customer</string>
@@ -79,6 +79,10 @@
     <string name="settings_vehicle_section_title">Vehicle</string>
     <string name="settings_vehicle_car">🚗 Car</string>
     <string name="settings_vehicle_motorcycle">🏍 Motorcycle</string>
+    <string name="settings_speed_scale_section_title">Speed scale</string>
+    <string name="settings_speed_scale_slow">Slow</string>
+    <string name="settings_speed_scale_medium_fast">Medium-fast</string>
+    <string name="settings_speed_scale_fast">Fast</string>
     <string name="settings_gps_section_title">GPS Tracking</string>
     <string name="settings_gps_interval_label">Update interval</string>
     <string name="settings_gps_interval_description">Min time between location fixes</string>

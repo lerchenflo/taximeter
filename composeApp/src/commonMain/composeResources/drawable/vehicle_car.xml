@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+  <!-- Top-down car silhouette pointing RIGHT (east). -->
+  <!-- Body -->
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M8,18 L8,30 Q8,34 12,34 L36,34 Q40,34 40,30 L40,18 Q40,14 36,14 L12,14 Q8,14 8,18 Z"/>
+  <!-- Windshield (front = right) -->
+  <path
+      android:fillColor="#90CAF9"
+      android:pathData="M32,16 L38,18 L38,22 L32,22 Z"/>
+  <!-- Rear window (left) -->
+  <path
+      android:fillColor="#90CAF9"
+      android:pathData="M16,16 L10,18 L10,22 L16,22 Z"/>
+  <!-- Wheels -->
+  <rect android:fillColor="#424242" android:x="9" android:y="13" android:width="7" android:height="4" android:rx="2"/>
+  <rect android:fillColor="#424242" android:x="9" android:y="31" android:width="7" android:height="4" android:rx="2"/>
+  <rect android:fillColor="#424242" android:x="32" android:y="13" android:width="7" android:height="4" android:rx="2"/>
+  <rect android:fillColor="#424242" android:x="32" android:y="31" android:width="7" android:height="4" android:rx="2"/>
+</vector>

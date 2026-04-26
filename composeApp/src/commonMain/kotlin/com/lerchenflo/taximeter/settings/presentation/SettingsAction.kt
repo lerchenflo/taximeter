@@ -1,5 +1,6 @@
 package com.lerchenflo.taximeter.settings.presentation
 
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
 import com.lerchenflo.taximeter.settings.domain.VehicleType
 
 sealed interface SettingsAction {
@@ -9,6 +10,7 @@ sealed interface SettingsAction {
     data object Save : SettingsAction
     data object GoBack : SettingsAction
     data class UpdateVehicleType(val type: VehicleType) : SettingsAction
+    data class UpdateSpeedScale(val scale: SpeedScale) : SettingsAction
     data class UpdateGpsInterval(val value: String) : SettingsAction
     data class UpdateGpsMinDistance(val value: String) : SettingsAction
     data object ShowClearConfirmation : SettingsAction

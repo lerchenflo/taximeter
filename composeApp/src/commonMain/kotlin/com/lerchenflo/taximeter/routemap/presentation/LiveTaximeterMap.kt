@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -31,21 +32,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lerchenflo.taximeter.settings.domain.SpeedScale
+import com.lerchenflo.taximeter.settings.domain.VehicleType
 import com.lerchenflo.taximeter.taximeter.domain.bearingDegrees
 import com.lerchenflo.taximeter.taximeter.domain.haversineDistance
 import com.lerchenflo.taximeter.utilities.formatTimeOfDay
 import com.lerchenflo.taximeter.utilities.toComposeColor
 import kotlinx.serialization.json.buildJsonObject
+import org.jetbrains.compose.resources.painterResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.ast.Expression
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.feature
+import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.step
 import org.maplibre.compose.expressions.value.ColorValue
+import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.expressions.value.LineCap
 import org.maplibre.compose.expressions.value.LineJoin
-import org.maplibre.compose.expressions.value.TextRotationAlignment
 import org.maplibre.compose.layers.CircleLayer
 import org.maplibre.compose.layers.LineLayer
 import org.maplibre.compose.layers.SymbolLayer
@@ -61,9 +66,13 @@ import org.maplibre.spatialk.geojson.LineString
 import org.maplibre.spatialk.geojson.Point
 import org.maplibre.spatialk.geojson.Position
 import org.maplibre.compose.util.ClickResult
+import taximeter.composeapp.generated.resources.Res
+import taximeter.composeapp.generated.resources.vehicle_car
+import taximeter.composeapp.generated.resources.vehicle_motorcycle
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
+internal val speedBlue = Color(0xFF2196F3)
 internal val speedGreen = Color(0xFF4CAF50)
 internal val speedYellowGreen = Color(0xFFC0CA33)
 internal val speedYellow = Color(0xFFFFC107)
@@ -72,7 +81,7 @@ internal val speedRed = Color(0xFFD32F2F)
 internal val markerGreen = Color(0xFF4CAF50)
 internal val markerRed = Color(0xFFF44336)
 
-private val legendGradientColors = listOf(speedGreen, speedYellowGreen, speedYellow, speedOrange, speedRed)
+private val legendGradientColors = listOf(speedBlue, speedGreen, speedYellowGreen, speedYellow, speedOrange, speedRed)
 
 @Composable
 fun LiveTaximeterMap(
@@ -128,38 +137,6 @@ fun LiveTaximeterMap(
                 ClickResult.Pass
             }
         ) {
-            livePolyline?.let { live ->
-                if (live.latitudes.size >= 2) {
-                    val lastIdx = live.latitudes.lastIndex
-                    val vehicleLat = live.latitudes[lastIdx]
-                    val vehicleLon = live.longitudes[lastIdx]
-                    val bearing = bearingDegrees(
-                        live.latitudes[lastIdx - 1], live.longitudes[lastIdx - 1],
-                        vehicleLat, vehicleLon
-                    )
-                    val vehicleSource = rememberGeoJsonSource(
-                        data = GeoJsonData.Features(
-                            FeatureCollection(
-                                Feature(
-                                    geometry = Point(Position(longitude = vehicleLon, latitude = vehicleLat)),
-                                    properties = buildJsonObject {}
-                                )
-                            )
-                        )
-                    )
-                    SymbolLayer(
-                        id = "live-vehicle",
-                        source = vehicleSource,
-                        textField = const(state.vehicleType.emoji()),
-                        textSize = const(28.sp),
-                        textRotate = const((bearing - 90f + 360f) % 360f),
-                        textRotationAlignment = const(TextRotationAlignment.Map),
-                        textIgnorePlacement = const(true),
-                        textAllowOverlap = const(true)
-                    )
-                }
-            }
-
             state.routePolylines.forEach { polyline ->
                 key(polyline.routeId) {
                     val positions = polyline.latitudes.zip(polyline.longitudes).map { (lat, lng) ->
@@ -173,7 +150,7 @@ fun LiveTaximeterMap(
                             data = GeoJsonData.Features(FeatureCollection(lineFeature)),
                             options = GeoJsonOptions(lineMetrics = true)
                         )
-                        val gradientExpr = buildSpeedGradient(polyline.latitudes, polyline.longitudes, polyline.speeds)
+                        val gradientExpr = buildSpeedGradient(polyline.latitudes, polyline.longitudes, polyline.speeds, state.speedScale)
                         LineLayer(
                             id = "route-${polyline.routeId}",
                             source = lineSource,
@@ -234,9 +211,46 @@ fun LiveTaximeterMap(
                     CircleLayer(id = "end-${polyline.routeId}", source = endSource, color = const(markerRed), radius = const(6.dp), strokeColor = const(Color.White), strokeWidth = const(2.dp))
                 }
             }
+
+            livePolyline?.let { live ->
+                if (live.latitudes.size >= 2) {
+                    val lastIdx = live.latitudes.lastIndex
+                    val vehicleLat = live.latitudes[lastIdx]
+                    val vehicleLon = live.longitudes[lastIdx]
+                    val bearing = bearingDegrees(
+                        live.latitudes[lastIdx - 1], live.longitudes[lastIdx - 1],
+                        vehicleLat, vehicleLon
+                    )
+                    val vehicleSource = rememberGeoJsonSource(
+                        data = GeoJsonData.Features(
+                            FeatureCollection(
+                                Feature(
+                                    geometry = Point(Position(longitude = vehicleLon, latitude = vehicleLat)),
+                                    properties = buildJsonObject {}
+                                )
+                            )
+                        )
+                    )
+                    val iconRes = when (state.vehicleType) {
+                        VehicleType.CAR -> Res.drawable.vehicle_car
+                        VehicleType.MOTORCYCLE -> Res.drawable.vehicle_motorcycle
+                    }
+                    val iconPainter = painterResource(iconRes)
+                    SymbolLayer(
+                        id = "live-vehicle",
+                        source = vehicleSource,
+                        iconImage = image(iconPainter),
+                        iconSize = const(1f),
+                        iconRotate = const((bearing - 90f + 360f) % 360f),
+                        iconRotationAlignment = const(IconRotationAlignment.Map),
+                        iconIgnorePlacement = const(true),
+                        iconAllowOverlap = const(true)
+                    )
+                }
+            }
         }
 
-        SpeedLegend(modifier = Modifier.align(Alignment.BottomStart).padding(12.dp))
+        SpeedLegend(scale = state.speedScale, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp))
 
         state.tooltip?.let { tooltip ->
             Box(
@@ -255,7 +269,7 @@ fun LiveTaximeterMap(
                         text = "${tooltip.speedKmh.roundToInt()} km/h",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = speedToColor(tooltip.speedKmh / 3.6f)
+                        color = speedToColor(tooltip.speedKmh / 3.6f, state.speedScale)
                     )
                     Text(
                         text = tooltip.timestamp.formatTimeOfDay(),
@@ -276,9 +290,10 @@ fun LiveTaximeterMap(
 internal fun buildSpeedGradient(
     latitudes: List<Double>,
     longitudes: List<Double>,
-    speeds: List<Float>
+    speeds: List<Float>,
+    scale: SpeedScale
 ): Expression<ColorValue> {
-    if (latitudes.size < 2) return const(speedGreen)
+    if (latitudes.size < 2) return const(speedBlue)
 
     val distances = mutableListOf(0.0)
     for (i in 1 until latitudes.size) {
@@ -286,18 +301,18 @@ internal fun buildSpeedGradient(
         distances.add(distances.last() + d)
     }
     val totalDist = distances.last()
-    if (totalDist <= 0.0) return const(speedGreen)
+    if (totalDist <= 0.0) return const(speedBlue)
 
     val stops = mutableListOf<Pair<Number, Expression<ColorValue>>>()
     for (i in speeds.indices) {
         val progress = (distances[i] / totalDist).toFloat()
-        val color = speedToColor(speeds[i])
-        if (i == 0 || speedToColor(speeds[i - 1]) != color) {
+        val color = speedToColor(speeds[i], scale)
+        if (i == 0 || speedToColor(speeds[i - 1], scale) != color) {
             stops.add(progress to const(color))
         }
     }
 
-    if (stops.isEmpty()) return const(speedGreen)
+    if (stops.isEmpty()) return const(speedBlue)
     val fallback = stops.first().second
     val remainingStops = if (stops.size > 1) stops.subList(1, stops.size) else emptyList()
 
@@ -308,21 +323,27 @@ internal fun buildSpeedGradient(
     )
 }
 
-internal fun speedToColor(speedMs: Float): Color {
+internal fun speedToColor(speedMs: Float, scale: SpeedScale): Color {
     val kmh = speedMs * 3.6f
+    val t = scale.thresholds
     return when {
-        kmh < 15f -> speedGreen
-        kmh < 30f -> speedYellowGreen
-        kmh < 45f -> speedYellow
-        kmh < 60f -> speedOrange
-        else      -> speedRed
+        kmh < t[0] -> speedBlue
+        kmh < t[1] -> speedGreen
+        kmh < t[2] -> speedYellowGreen
+        kmh < t[3] -> speedYellow
+        kmh < t[4] -> speedOrange
+        else       -> speedRed
     }
 }
 
 @Composable
-private fun SpeedLegend(modifier: Modifier = Modifier) {
+private fun SpeedLegend(scale: SpeedScale, modifier: Modifier = Modifier) {
+    val maxLabel = "${scale.maxKmh.toInt()}+"
+    val mid1 = (scale.maxKmh / 3f).toInt().toString()
+    val mid2 = (scale.maxKmh * 2f / 3f).toInt().toString()
     Column(
         modifier = modifier
+            .fillMaxWidth(0.5f)
             .background(Color(0xCC17191B), RoundedCornerShape(8.dp))
             .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(8.dp))
             .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -331,16 +352,16 @@ private fun SpeedLegend(modifier: Modifier = Modifier) {
         Text("SPEED  km/h", fontSize = 9.sp, color = Color(0xFF9C9891), fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp)
         Box(
             modifier = Modifier
-                .width(120.dp)
+                .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .background(Brush.horizontalGradient(legendGradientColors))
         )
         Row(
-            modifier = Modifier.width(120.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            listOf("0", "30", "60", "90+").forEach { label ->
+            listOf("0", mid1, mid2, maxLabel).forEach { label ->
                 Text(label, fontSize = 8.sp, color = Color(0xFF9C9891), fontFamily = FontFamily.Monospace)
             }
         }
